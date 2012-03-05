@@ -185,15 +185,17 @@ int sr_cpu_output(struct sr_instance* sr /* borrowed */,
     assert(sr);
     assert(buf);
     assert(iface);
+#ifdef _CPUMODE_
     struct sr_instance* sr_inst = get_sr();
     struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
     // get interface instance
-    /*interface_t* intf = get_interface_name(router, iface);
+    interface_t* intf = get_interface_name(router, iface);
     pthread_mutex_lock(&intf->hw_lock);
     int ret = writen(intf->hw_fd, buf, len);
-    pthread_mutex_unlock(&intf->hw_lock); */
+    pthread_mutex_unlock(&intf->hw_lock); 
     /* Return the length of the packet on success, -1 on failure */
-    //return ret;
+    return ret;
+#endif
     return 0;
 } /* -- sr_cpu_output -- */
 
@@ -288,6 +290,8 @@ void sr_cpu_init_interface_socket(sr_router* router) {
 	}
 
         //add fd to interface hw_fd
-        //router->interface[i].hw_fd = s;
+#ifdef _CPUMODE_
+        router->interface[i].hw_fd = s;
+#endif
    }
 }
