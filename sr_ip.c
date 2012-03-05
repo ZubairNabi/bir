@@ -86,11 +86,11 @@ void ip_handle_packet( sr_router* router,
       if(check_packet_destination(ip_header->ip_dst, intf) == TRUE || ip_header->ip_dst.s_addr == make_ip_addr(all_spf_routers)) {
          printf(" ** ip_handle_packet(..) yes I'm the destination \n");
          // check if ttl expired
-         if(ip_header->ip_ttl == 1) {
+/*         if(ip_header->ip_ttl == 1) {
             printf(" ** ip_handle_packet(..) ttl expired, sending ICMP ttl error message \n");
             uint8_t code = ICMP_TYPE_CODE_TTL_TRANSIT;
             icmp_type_ttl_send(&code, payload, (uint8_t*)&ip_header->ip_len, ip_header);
-         } else {
+         } else*/ {
             // check protocol
             printf(" ** ip_handle_packet(..) checking protocol \n");
             check_packet_protocol(router, ip_header, payload, payload_len, intf, ip_packet);
@@ -167,7 +167,11 @@ void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payloa
    } else if(ip_header->ip_p == IP_PROTOCOL_UDP) {
       //udp
       printf(" ** ip_handle_packet(..) protocol: UDP \n");
-      udp_handle_packet(payload, ip_header, intf);
+      //udp_handle_packet(payload, ip_header, intf);
+      printf(" ** ip_handle_packet(..) protocol: Error! Not supported. Dropping and sending ICMP response: port unreachable \n");
+      uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_PORT;
+      icmp_type_dst_unreach_send(&code, ip_packet, (uint8_t*)&ip_header->ip_len, ip_header);
+
    } else if(ip_header->ip_p == IP_PROTOCOL_OSPF) {
       //ospf
       printf(" ** ip_handle_packet(..) protocol: OSPF \n");
