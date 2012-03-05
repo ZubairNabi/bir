@@ -478,3 +478,13 @@ int predicate_id_neighbor_t(void *listdata, void *id) {
            return 0;
 }
 
+int llist_size(node *head) {
+   int count = 0;
+   node* temp = head;
+   while(temp) {
+      count++;
+      temp = temp->next;
+   }
+   return count;
+}
+

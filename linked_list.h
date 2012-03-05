@@ -44,4 +44,5 @@ int predicate_ip_arp_queue_entry_t(void *listdata, void *ip);
 int predicate_timeval_neighbor_t(void* item, void* time);
 int display_neighbor_t(void* data);
 int predicate_id_neighbor_t(void *listdata, void *id);
+int llist_size(node *head);
 #endif
