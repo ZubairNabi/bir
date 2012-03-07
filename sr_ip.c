@@ -83,7 +83,7 @@ void ip_handle_packet( sr_router* router,
       printf(" ** ip_handle_packet(..) checking packet destination \n");
       // check if spf broadcast packet
       char* all_spf_routers =  ALL_SPF_ROUTERS_IP;
-      if(check_packet_destination(ip_header->ip_dst, intf) == TRUE || ip_header->ip_dst.s_addr == make_ip_addr(all_spf_routers)) {
+      if(check_packet_destination(ip_header->ip_dst, router) == TRUE || ip_header->ip_dst.s_addr == make_ip_addr(all_spf_routers)) {
          printf(" ** ip_handle_packet(..) yes I'm the destination \n");
          // check if ttl expired
 /*         if(ip_header->ip_ttl == 1) {
@@ -145,13 +145,16 @@ void display_ip_header(struct ip* ip_header) {
    printf(" ** ver: %u,  header len: %u, tos:  %u, packet len: %u, id:  %u, off:  %u, ttl:  %u, protocol:  %u, checksum:  %u, src:  %s, dst:  %s\n", ip_header->ip_v, ip_header->ip_hl, ip_header->ip_tos, ip_header->ip_len, ip_header->ip_id, ip_header->ip_off, ip_header->ip_ttl, ip_header->ip_p, ip_header->ip_sum, src, dst);
 }
 
-bool check_packet_destination(struct in_addr ip_dst, interface_t* intf) {
+bool check_packet_destination(struct in_addr ip_dst, sr_router* router) {
    char str[INET_ADDRSTRLEN];
    inet_ntop(AF_INET, &(ip_dst), str, INET_ADDRSTRLEN);
    printf(" ** dst:  %s\n", str);
-   printf(" ** intf: %s\n", quick_ip_to_string(intf->ip));
-   if(ip_dst.s_addr == intf->ip)
-      return TRUE;
+   int i = 0;
+   for(i = 0; i < router->num_interfaces ; i++) {
+      printf(" ** intf: %s\n", quick_ip_to_string(router->interface[i].ip));
+      if(ip_dst.s_addr == router->interface[i].ip)
+         return TRUE;
+   }
    return FALSE;
 }
 
@@ -326,9 +329,10 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
    route_info_t route_info = rrtable_find_route(subsystem->rtable, dst_ip);
    // display output interface
    printf(" ** ip_lookup_reply(..) output interface for ip: %s\n", quick_ip_to_string(dst_ip));
+   printf("**** src %s\n", quick_ip_to_string(ip_header->ip_src.s_addr));
    display_interface(route_info.intf);
-      // check if destination same as ip of the source interface
-   if(strcmp(route_info.intf->name, intf->name) == 0 && route_info.intf->ip != ip_header->ip_src.s_addr) {
+      // check if destination same as ip of the source interface and packet didn't originate from one of my interfaces
+   if(strcmp(route_info.intf->name, intf->name) == 0 && check_packet_source(ip_header->ip_src, subsystem) == FALSE) {
       printf(" ** make_ip_packet_reply(..) error! destination interface same as source \n");
      // send icmp destination host unreachable
      uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_HOST;
@@ -364,4 +368,13 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
          send_ip_packet(ip_packet, ip_header_ttl, route_info);
       }
    }
+}
+
+bool check_packet_source(struct in_addr ip_src, sr_router* router) {
+   int i = 0;
+   for(i = 0; i < router->num_interfaces ; i++) {
+      if(ip_src.s_addr == router->interface[i].ip)
+         return TRUE;
+   }
+   return FALSE;
 }
