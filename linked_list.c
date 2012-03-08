@@ -380,8 +380,9 @@ int predicate_ip_sort_route_t(void* listdata1, void* listdata2) {
 
 int display_route_t(void *data) {
         route_t *entry = (route_t*) data;
-        printf("Type: %c, Destination IP: %s, Next HOP IP: %s, Subnet Mask: %sInterface:\n", entry->type, quick_ip_to_string(entry->destination), quick_ip_to_string(entry->next_hop), quick_ip_to_string(entry->subnet_mask));
-        printf("Interface:\n");
+        printf("Type: %c, Destination IP: %s, ", entry->type, quick_ip_to_string(entry->destination));
+        printf("Next HOP IP: %s ", quick_ip_to_string(entry->next_hop));
+        printf("Subnet Mask: %s Interface:\n", quick_ip_to_string(entry->subnet_mask));
         display_interface(&entry->intf);
         return 0;
 }

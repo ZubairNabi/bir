@@ -65,7 +65,8 @@ interface_t* get_interface_ip(struct sr_router* router, addr_ip_t ip) {
 }
 
 void display_interface(interface_t* intf) {
-   printf(" ** name: %s, mac: %s, ip: %s, subnet mask: %s, hello interval: %u, ", intf->name,  quick_mac_to_string(intf->mac.octet), quick_ip_to_string(intf->ip), quick_ip_to_string(intf->subnet_mask), intf->helloint);
+   printf(" ** name: %s, mac: %s, ip: %s ", intf->name,  quick_mac_to_string(intf->mac.octet), quick_ip_to_string(intf->ip));
+   printf("subnet mask: %s, hello interval: %u, ", quick_ip_to_string(intf->subnet_mask), intf->helloint);
    if(intf->enabled == TRUE)
       printf("status: enabled\n");
    else
