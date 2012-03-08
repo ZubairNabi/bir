@@ -222,6 +222,6 @@ void send_lsu_packet(void* intf_input) {
       // sleep for interval
       nanosleep(timeout, timeout_rem);
       printf(" ** send lsu packet thread awoken\n");
-      //pwospf_send_lsu();
+      pwospf_send_lsu();
    }
 }

@@ -4,6 +4,7 @@
 #include "sr_base_internal.h"
 #include "sr_integration.h"
 #include "lwtcp/lwip/inet.h"
+#include "sr_ip.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -123,7 +124,7 @@ void display_hello_packet(pwospf_hello_packet_t* packet) {
 }
 
 void display_lsu_packet(pwospf_lsu_packet_t* packet) {
-   printf(" ** seq: %d, ttl: %u, no. of adverts: %d\n", ntohs(packet->seq), ntohs(packet->ttl), ntohs(packet->no_of_adverts));
+   printf(" ** seq: %d, ttl: %u, no. of adverts: %d\n", ntohs(packet->seq), ntohs(packet->ttl), ntohl(packet->no_of_adverts));
 }
 
 void pwospf_send_lsu() {
@@ -131,9 +132,19 @@ void pwospf_send_lsu() {
     // get instance of router 
     struct sr_instance* sr_inst = get_sr();
     struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);    
-    // initially allocate mem for interfaces
-    byte* ls_adverts = (byte*) malloc_or_die(sizeof(pwospf_ls_advert_t) * router->num_interfaces);
+    // find the number of neighbors of all interfaces
+    int num_neighbors = 0;
     int i = 0;
+    for( i = 0; i < router->num_interfaces ; i++) {
+       num_neighbors = num_neighbors + llist_size(router->interface[i].neighbor_list);
+    }
+    //display total number of neighbors
+    printf(" ** pwospf_send_lsu(..) total neighbors: %d\n", num_neighbors);
+    printf(" ** pwospf_send_lsu(..) total interfaces: %d\n", router->num_interfaces);
+    int num_adverts_calc = num_neighbors + router->num_interfaces;
+    printf(" ** pwospf_send_lsu(..) total adverts: %d\n", num_adverts_calc);
+    // initially allocate mem for interfaces
+    byte* ls_adverts = (byte*) malloc_or_die(sizeof(pwospf_ls_advert_t) * num_adverts_calc);
     int num_adverts = 0;
     node* first = NULL;
     neighbor_t* neighbor = NULL;
@@ -149,12 +160,6 @@ void pwospf_send_lsu() {
           // get neighbor
           neighbor = (neighbor_t*) first->data; 
           if(neighbor != NULL) {
-             // realloc more mem to accommodate neighbor
-             byte* temp = realloc(ls_adverts, sizeof(pwospf_ls_advert_t));
-             if(temp != NULL)
-                ls_adverts = temp;
-             else
-                printf("NULL!\n");
              //copy neighbor info
              memcpy(ls_adverts + num_adverts * sizeof(pwospf_ls_advert_t), &neighbor->ip, sizeof(uint32_t));
              memcpy(ls_adverts + sizeof(uint32_t) + num_adverts * sizeof(pwospf_ls_advert_t), &neighbor->mask, sizeof(uint32_t));
@@ -165,49 +170,21 @@ void pwospf_send_lsu() {
        }
        pthread_mutex_unlock(&router->interface[i].neighbor_lock);
     } 
-       uint32_t temp1;
-       memcpy(&temp1, ls_adverts, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts + 4, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts + 8, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts +12, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts + 16, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1)); 
-       memcpy(&temp1, ls_adverts + 20, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-      memcpy(&temp1, ls_adverts + 24, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts + 28, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1)); 
-      memcpy(&temp1, ls_adverts + 32, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-   memcpy(&temp1, ls_adverts + 36, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts + 40, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-       memcpy(&temp1, ls_adverts + 44, 4);
-       printf("*** %s\n", quick_ip_to_string(temp1));
-
     printf(" ** pwospf_send_lsu(..) number of adverts: %d\n", num_adverts);
-    printf(" ** what\n");
     // now create lsu_packet
     pwospf_lsu_packet_t *lsu_packet = (pwospf_lsu_packet_t*) malloc_or_die(sizeof(pwospf_lsu_packet_t));
-    printf("***** called\n");
     //increment lsu sequence
     router->ls_info.lsu_seq = router->ls_info.lsu_seq + 1;
     lsu_packet->seq = htons(router->ls_info.lsu_seq);
     uint16_t ttl = PWOSPF_LSU_TTL;
     lsu_packet->ttl = htons(ttl);
-    lsu_packet->no_of_adverts = htons(num_adverts);
+    lsu_packet->no_of_adverts = htonl(num_adverts);
     // calculate length of entire pwospf packet
     uint16_t pwospf_packet_len = sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_header_t) + sizeof(pwospf_ls_advert_t) * num_adverts;
     //make pwospf header
     pwospf_header_t* pwospf_header = (pwospf_header_t*) malloc_or_die(sizeof(pwospf_header_t));
     pwospf_header->version = PWOSPF_VER;
-    pwospf_header->type = PWOSPF_TYPE_HELLO;
+    pwospf_header->type = PWOSPF_TYPE_LSU;
     pwospf_header->len = htons(pwospf_packet_len);
     pwospf_header->router_id = router->ls_info.router_id;
     pwospf_header->area_id = router->ls_info.area_id;
@@ -222,9 +199,27 @@ void pwospf_send_lsu() {
     // generate checksum
     pwospf_header->checksum = htons(htons(inet_chksum((void*) pwospf_packet, pwospf_packet_len)));
     memcpy(pwospf_packet, pwospf_header, sizeof(pwospf_header_t));
-    printf("***** called2\n");
     free(ls_adverts);
     free(lsu_packet);
     free(pwospf_header);
     printf(" ** pwospf_send_lsu(..) pwospf packet with length %u generated\n", pwospf_packet_len);
+    // now iterate through each interface
+    for( i = 0; i < router->num_interfaces ; i++) {
+       // now iterate this interface's neighbors list
+       first = router->interface[i].neighbor_list;
+       pthread_mutex_lock(&router->interface[i].neighbor_lock);
+       while(first != NULL) {
+          // get neighbor
+          neighbor = (neighbor_t*) first->data;
+          if(neighbor != NULL) {
+             struct in_addr src, dst;
+             src.s_addr = router->interface[i].ip;
+             dst.s_addr = neighbor->ip;
+             make_ip_packet(pwospf_packet, pwospf_packet_len, dst, src, IP_PROTOCOL_OSPF);
+             
+          }
+          first = first->next;
+       }
+       pthread_mutex_unlock(&router->interface[i].neighbor_lock);
+   }
 }
