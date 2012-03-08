@@ -91,6 +91,8 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint8_t payload_len, p
           // check if the previous seq was same
           if(neighbor->last_lsu_packet.seq != lsu_packet->seq) {
              // nope, new seq
+             // flood to all neighbors
+             pwospf_flood_lsu(ip_header, pwospf_header, lsu_packet, neighbor, intf);
              // check if content the same
              if(strcmp((char*) neighbor->last_adverts, (char*) (payload + 8)) != 0) {
              // nope new content
@@ -221,5 +223,54 @@ void pwospf_send_lsu() {
           first = first->next;
        }
        pthread_mutex_unlock(&router->interface[i].neighbor_lock);
+   }
+}
+
+void pwospf_flood_lsu(struct ip* ip_header, pwospf_header_t* pwospf_header, pwospf_lsu_packet_t* lsu_packet, neighbor_t* sending_neighbor, interface_t* intf) {
+   printf(" ** pwospf_flood_lsu(..) called\n");
+   // decrement ttl
+   uint16_t ttl = 0;
+   ttl = htons(lsu_packet->ttl);
+   ttl = ttl - 1;
+   ttl = ntohs(ttl);
+   lsu_packet->ttl = ttl;
+   // check if ttl expired
+   if(lsu_packet->ttl < 1) {
+      printf(" ** pwospf_flood_lsu(..) ttl expired, not flooding\n");
+   } else {
+      // get instance of router 
+      struct sr_instance* sr_inst = get_sr();
+      struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+      node* first = NULL;
+      neighbor_t* neighbor = NULL;
+      int i;
+      // now iterate through each interface
+      for( i = 0; i < router->num_interfaces ; i++) {
+         // now iterate this interface's neighbors list
+         first = router->interface[i].neighbor_list;
+         pthread_mutex_lock(&router->interface[i].neighbor_lock);
+         while(first != NULL) {
+            // get neighbor
+            neighbor = (neighbor_t*) first->data;
+            if(neighbor != NULL) {
+               // ensure that the sending neighbour is excluded
+               if(neighbor->id != sending_neighbor->id) {
+                  byte* ip_packet = (byte*) malloc_or_die(ip_header->ip_len);
+                  ip_header->ip_dst.s_addr = neighbor->ip;
+                  ip_header->ip_len = htons((ip_header->ip_len));
+                  ip_header->ip_off = htons((ip_header->ip_off));
+                  ip_header->ip_id = htons((ip_header->ip_id));
+                  ip_header->ip_sum = htons((ip_header->ip_sum));
+                  memcpy(ip_packet, ip_header, ip_header->ip_hl * 4);
+                  memcpy(ip_packet + ip_header->ip_hl * 4, pwospf_header, sizeof(pwospf_header_t));
+                  memcpy(ip_packet + ip_header->ip_hl * 4 + sizeof(pwospf_header_t), lsu_packet, sizeof(pwospf_lsu_packet_t));
+                  ip_look_up_reply(ip_packet, ip_header, intf);
+               }
+
+            }  
+          first = first->next;
+         }
+          pthread_mutex_unlock(&router->interface[i].neighbor_lock);
+      }
    }
 }
