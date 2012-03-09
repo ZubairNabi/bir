@@ -85,8 +85,17 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint8_t payload_len, p
              pthread_mutex_lock(&intf->neighbor_lock);  
              intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
              pthread_mutex_unlock(&intf->neighbor_lock);
-              display_neighbor_t((void*) neighbor);
-             //TODO: DB stuff
+             display_neighbor_t((void*) neighbor);
+             // add adverts to db
+             printf(" ** pwospf_lsu_type(..) adding adverts to neighbor db\n");
+             int i;
+             pwospf_ls_advert_t* ls_advert = (pwospf_ls_advert_t*) malloc_or_die(sizeof(pwospf_ls_advert_t));
+             for(i = 0; i < ntohl(lsu_packet->no_of_adverts) ; i++) {
+                memcpy(&ls_advert->subnet, payload + sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_ls_advert_t) * i, 4);         
+                memcpy(&ls_advert->mask, payload + sizeof(pwospf_lsu_packet_t) + 4 + sizeof(pwospf_ls_advert_t) * i, 4);
+                memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
+                display_ls_advert(ls_advert);
+             }
           } else {
           // check if the previous seq was same
           if(neighbor->last_lsu_packet.seq != lsu_packet->seq) {
@@ -273,4 +282,10 @@ void pwospf_flood_lsu(struct ip* ip_header, pwospf_header_t* pwospf_header, pwos
           pthread_mutex_unlock(&router->interface[i].neighbor_lock);
       }
    }
+}
+
+void display_ls_advert(pwospf_ls_advert_t* packet) {
+   printf(" ** subnet: %s, ", quick_ip_to_string(packet->subnet));
+   printf("mask: %s, ", quick_ip_to_string(packet->mask));
+   printf("router_id: %s\n", quick_ip_to_string(ntohl(packet->router_id)));
 }

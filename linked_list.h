@@ -1,5 +1,4 @@
-#ifndef LINKED_LIST_H_
-#define LINKED_LIST_H_
+#pragma once
 
 #include "sr_common.h"
 
@@ -45,4 +44,7 @@ int predicate_timeval_neighbor_t(void* item, void* time);
 int display_neighbor_t(void* data);
 int predicate_id_neighbor_t(void *listdata, void *id);
 int llist_size(node *head);
-#endif
+int predicate_ip_sort_vertex_t(void* listdata1, void* listdata2);
+int predicate_vertex_neighbor_vertex_t(void *listdata, void *vertex);
+int display_neighbor_vertex_t(void* data);
+node* llist_update_sorted_delete(node *head, int(*func)(void*,void*), void *data);

@@ -9,6 +9,7 @@
 #include "sr_rtable.h"
 #include "sr_neighbor.h"
 #include "sr_pwospf_types.h"
+#include "sr_neighbor_db.h"
 
 node *llist_new() {
    node* head = NULL;
@@ -489,3 +490,46 @@ int llist_size(node *head) {
    return count;
 }
 
+int predicate_ip_sort_vertex_t(void* listdata1, void* listdata2) {
+  neighbor_vertex_t *listdata1_vertex = (neighbor_vertex_t*) listdata1;
+  neighbor_vertex_t *listdata2_vertex = (neighbor_vertex_t*) listdata2;
+    if( compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->dst.subnet) == 1 ||
+  compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->dst.subnet) == 0)
+       return 1;
+    else
+       return 0;
+}
+
+int predicate_vertex_neighbor_vertex_t(void *listdata, void *vertex) {
+        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
+        neighbor_vertex_t *vertex_test = (neighbor_vertex_t*) vertex;
+        if( compare_neighbor_vertex_t(listdata_entry, vertex_test) == 1)
+           return 1;
+        else
+           return 0;
+}
+
+int display_neighbor_vertex_t(void* data) {
+   neighbor_vertex_t *entry = (neighbor_vertex_t*) data;
+   printf("Timestamp: %ld.%06ld, ", entry->timestamp->tv_sec, entry->timestamp->tv_usec);
+   printf("Src: subnet: %s ", quick_ip_to_string(entry->src.subnet));
+   printf("mask: %s ", quick_ip_to_string(entry->src.mask));
+   printf("router id: %s ", quick_ip_to_string(entry->src.router_id));
+   printf("Dst: subnet: %s ", quick_ip_to_string(entry->dst.subnet));
+   printf("mask: %s ", quick_ip_to_string(entry->dst.mask));
+   printf("router id: %s\n", quick_ip_to_string(entry->dst.router_id));
+   return 0;
+}
+
+node* llist_update_sorted_delete(node *head, int(*func)(void*,void*), void *data) {
+   node* first = head;
+   if(llist_exists(first, func, data) == TRUE) {
+      first = llist_remove(first, func, data);
+      first = llist_insert_sorted(first, func, data);
+      return first;
+   }
+   else {
+      first = llist_insert_sorted(first, func, data);
+      return first;
+   }
+}

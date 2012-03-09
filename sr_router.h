@@ -11,6 +11,11 @@
 #include "sr_interface.h"
 #include "sr_rtable.h"
 
+typedef struct neighbor_db_t {
+   node* neighbor_db_list;
+   pthread_mutex_t neighbor_db_lock;
+} neighbor_db_t;
+
 typedef struct ls_info_t {
    uint32_t router_id;
    uint32_t area_id;
@@ -33,7 +38,7 @@ typedef struct sr_router {
    ls_info_t ls_info;
    //meta data for ping
    ping_info_t ping_info;
-   node* neighbor_db_list;
+   neighbor_db_t* neighbor_db;
 } sr_router;
 
 void toggle_ospf_status(sr_router* router, bool status);
