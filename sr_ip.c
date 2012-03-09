@@ -329,7 +329,6 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
    route_info_t route_info = rrtable_find_route(subsystem->rtable, dst_ip);
    // display output interface
    printf(" ** ip_lookup_reply(..) output interface for ip: %s\n", quick_ip_to_string(dst_ip));
-   printf("**** src %s\n", quick_ip_to_string(ip_header->ip_src.s_addr));
    display_interface(route_info.intf);
       // check if destination same as ip of the source interface and packet didn't originate from one of my interfaces
    if(strcmp(route_info.intf->name, intf->name) == 0 && check_packet_source(ip_header->ip_src, subsystem) == FALSE) {
@@ -347,8 +346,13 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
       // check if ttl expired
       if(ip_header->ip_ttl == 1) {
          printf(" ** ip_lookup_reply(..) ttl expired, sending ICMP ttl error message \n");
+         // reverse order
+         ip_header->ip_len = ntohs((ip_header->ip_len));
+         ip_header->ip_off = ntohs((ip_header->ip_off));
+         ip_header->ip_id = ntohs((ip_header->ip_id));
+         ip_header->ip_sum = ntohs((ip_header->ip_sum));
          uint8_t code = ICMP_TYPE_CODE_TTL_TRANSIT;
-         uint8_t len = ntohs(ip_header->ip_len);
+         uint8_t len = ip_header->ip_len;
          icmp_type_ttl_send(&code, ip_packet, &len, ip_header);
       } else {
          printf(" ** ip_lookup_reply(..) decrementing ttl \n");
