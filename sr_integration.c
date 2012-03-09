@@ -62,73 +62,6 @@ void sr_integ_init(struct sr_instance* sr)
     arp_cache_init(subsystem);
     interface_init(subsystem);
     rrtable_init(subsystem);
-   /* addr_mac_t intf_mac = make_mac_addr(1,1,1,1,1,1);
-    addr_ip_t intf_ip = make_ip_addr("0.0.0.0");
-    addr_ip_t intf_subnet = make_ip_addr("255.255.255.255");
-    node *head = llist_new();
-    node *head2 = llist_new();
-    interface_t intf = make_interface("eth0", intf_mac, intf_ip, TRUE, intf_subnet);
-    route_t* r1 = make_route_t('s', make_ip_addr("1.1.1.1"), intf, make_ip_addr("1.1.1.1"), make_ip_addr("1.1.1.1"));
-    route_t* r2 = make_route_t('s', make_ip_addr("192.1.1.1"), intf, make_ip_addr("2.2.2.2"), make_ip_addr("2.2.2.2"));
-    route_t* r3 = make_route_t('s', make_ip_addr("234.56.7.9"), intf, make_ip_addr("3.3.3.3"), make_ip_addr("3.3.3.3"));
-    route_t* r4 = make_route_t('s', make_ip_addr("10.1.1.4"), intf, make_ip_addr("3.3.3.3"), make_ip_addr("3.3.3.3"));
-    route_t* r5 = make_route_t('s', make_ip_addr("234.56.9.0"), intf, make_ip_addr("3.3.3.3"), make_ip_addr("3.3.3.3"));
-    head = llist_insert_beginning(head, (void*) r1);
-    head = llist_insert_beginning(head, (void*) r2);
-    head = llist_insert_beginning(head, (void*) r3);
-    head = llist_insert_beginning(head, (void*) r4);
-    head = llist_insert_beginning(head, (void*) r5);
-    llist_display_all(head, display_route_t);
-    printf("*************************************\n");
-
-    head2 = llist_insert_sorted(head2, predicate_ip_sort_route_t,(void*) r1);
-    head2 = llist_insert_sorted(head2, predicate_ip_sort_route_t,(void*) r2);
-    head2 = llist_insert_sorted(head2, predicate_ip_sort_route_t,(void*) r3);
-    head2 = llist_insert_sorted(head2, predicate_ip_sort_route_t,(void*) r4);
-    head2 = llist_insert_sorted(head2, predicate_ip_sort_route_t,(void*) r5);
-    llist_display_all(head2, display_route_t);
-
-   addr_ip_t ip_remove = make_ip_addr("10.1.1.4");
-    printf("*************************************\n");
-
-    head2 = llist_remove(head2, predicate_ip_route_t, (void*) &ip_remove);
-    
-    llist_display_all(head2, display_route_t);
-*/
-
-    /*
-    node* head = llist_new();
-    head = llist_insert_beginning(head, (void*) "1");
-    head = llist_insert_beginning(head, (void*) "2");
-    head = llist_insert_beginning(head, (void*) "3");
-     head = llist_insert_beginning(head, (void*) "4");
-     head = llist_insert_beginning(head, (void*) "5");
-   llist_display_all(head, display_string);
-    head = llist_remove(head, predicate_string, (void*)"3");
-    llist_display_all(head, display_string);
-     head = llist_remove(head, predicate_string, (void*)"1");
-    llist_display_all(head, display_string);
-   head = llist_remove(head, predicate_string, (void*)"5");
-    llist_display_all(head, display_string);
-    head = llist_remove(head, predicate_string, (void*)"5");
-    llist_display_all(head, display_string);
-    int count = 0;
-    head = llist_delete(head, &count);
-    printf("count: %d\n", count);
-    llist_display_all(head, display_string);
-    head = llist_insert_beginning(head, (void*) "5");
-     head = llist_insert_beginning(head, (void*) "4");
-     head = llist_insert_beginning(head, (void*) "5");
-   head = llist_insert_beginning(head, (void*) "3");
-     head = llist_insert_beginning(head, (void*) "3");
-     head = llist_insert_beginning(head, (void*) "5");
-     llist_display_all(head, display_string);
-    head = llist_remove_all_no_count(head, predicate_string, (void*)"5");
-    llist_display_all(head, display_string); 
-     node* ret = llist_find(head, predicate_string, (void*)"3");
-     printf("%s\n", ret->data);
-     */
-    
 } /* -- sr_integ_init -- */
 
 /*-----------------------------------------------------------------------------
@@ -149,25 +82,6 @@ void sr_integ_hw_setup(struct sr_instance* sr)
     // read rtable file
     sr_load_rt(sr, sr->rtable);
     // add static entries to routing table
-    /*
-    rrtable_route_add( subsystem->rtable,
-                       make_ip_addr("128.232.49.199"),
-                       make_ip_addr("128.232.49.199"),
-                       make_ip_addr("255.255.255.255"),
-                       get_interface_name(subsystem, "eth2"),
-                       's' );
-    rrtable_route_add( subsystem->rtable,
-                       make_ip_addr("128.232.49.197"),
-                       make_ip_addr("128.232.49.197"),
-                       make_ip_addr("255.255.255.255"),
-                       get_interface_name(subsystem, "eth1"),
-                       's' );
-    rrtable_route_add( subsystem->rtable,
-                       make_ip_addr("0.0.0.0"),
-                       make_ip_addr("128.232.98.2"),
-                       make_ip_addr("0.0.0.0"),
-                       get_interface_name(subsystem, "eth0"),
-                       's' );*/
     printf(" ** sr_integ_hw(..) initial state of routing table\n");
     llist_display_all(subsystem->rtable->rtable_list, display_route_t);
     // set link state info
