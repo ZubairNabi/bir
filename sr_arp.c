@@ -123,5 +123,6 @@ void arp_send_request( addr_ip_t ip, interface_t* intf ) {
 }
 
 void print_packet_arp(packet_arp_t* arp_packet) {
-    printf("ARP packet, HTYPE: %u, PTYPE: %u, HLEN: %u, PLEN: %u, OPCODE: %u, SRC MAC: %s, SRC IP: %s, DST MAC: %s, DST IP: %s\n", ntohs(arp_packet->hw_type), arp_packet->proto_type, arp_packet->hw_len, arp_packet->proto_len,  ntohs(arp_packet->opcode), quick_mac_to_string(arp_packet->src_mac.octet),  quick_ip_to_string(arp_packet->src_ip), quick_mac_to_string(arp_packet->dst_mac.octet), quick_ip_to_string(arp_packet->dst_ip));
+    printf("ARP packet, HTYPE: %u, PTYPE: %u, HLEN: %u, PLEN: %u, OPCODE: %u, SRC MAC: %s, SRC IP: %s, ", ntohs(arp_packet->hw_type), arp_packet->proto_type, arp_packet->hw_len, arp_packet->proto_len,  ntohs(arp_packet->opcode), quick_mac_to_string(arp_packet->src_mac.octet),  quick_ip_to_string(arp_packet->src_ip));
+   printf("DST MAC: %s, DST IP: %s\n", quick_mac_to_string(arp_packet->dst_mac.octet), quick_ip_to_string(arp_packet->dst_ip));
 }
