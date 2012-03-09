@@ -273,7 +273,11 @@ void send_ip_packet(byte* ip_packet, struct ip* ip_header, route_info_t route_in
    memcpy(&src_ip, &ip_header->ip_src, 4);
    if(check_if_local_subnet(dst_ip, src_ip, route_info.intf->subnet_mask) == FALSE) { // non local subnet
       printf(" ** send_ip_packet(..) destination on non-local subnet\n");
-      dst_ip = route_info.ip;
+      // check if dst directly connected
+      if(route_info.ip == 0)
+         printf(" ** send_ip_packet(..) destination directly connected\n");
+      else
+         dst_ip = route_info.ip;
    } else
       printf(" ** send_ip_packet(..) destination on local subnet\n");
    struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(get_sr());
