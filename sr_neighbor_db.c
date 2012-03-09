@@ -2,9 +2,22 @@
 #include "cli/helper.h"
 
 void neighbor_db_init(sr_router* router) {
+   printf(" ** neighbor_db_init(..) called \n");
    router->neighbor_db = (neighbor_db_t*) malloc_or_die(sizeof(neighbor_db_t));
    router->neighbor_db->neighbor_db_list = llist_new();
    pthread_mutex_init(&router->neighbor_db->neighbor_db_lock, NULL);
+   // now add interfaces to db
+   neighbor_db_add_interfaces(router);
+}
+
+void neighbor_db_add_interfaces(sr_router* router) {
+   printf(" ** neighbor_db_add_interfaces(..) called \n");
+   int i;
+   router_entry_t src = create_router_entry_t(router->interface[0].ip, router->interface[0].subnet_mask, router->interface[0].router_id);
+   for( i = 0; i < router->num_interfaces; i++) {
+      router_entry_t dst = create_router_entry_t(router->interface[i].ip, router->interface[0].subnet_mask, router->interface[i].router_id);
+      add_neighbor_vertex_t(router, src, dst);
+   }
 }
 
 router_entry_t create_router_entry_t_advert(pwospf_ls_advert_t* advert) {

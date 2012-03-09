@@ -36,3 +36,5 @@ bool compare_router_entry_t(router_entry_t *r1, router_entry_t *r2);
 bool check_neighbor_vertex_t(sr_router* router, neighbor_vertex_t* vertex);
 
 void update_neighbor_vertex_t(sr_router* router, neighbor_vertex_t* vertex);
+
+void neighbor_db_add_interfaces(sr_router* router);
