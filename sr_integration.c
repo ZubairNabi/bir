@@ -88,7 +88,10 @@ void sr_integ_hw_setup(struct sr_instance* sr)
     uint32_t area_id = PWOSPF_AREA_ID;
     uint16_t lsuint = PWOSPF_LSU_INTERVAL;
     set_ls_info_id(subsystem, area_id, lsuint);
+    // initialize pwospf
     pwospf_init(subsystem);
+    // initialize neighbor db
+    neighbor_db_init(subsystem);
 } /* -- sr_integ_hw_setup -- */
 
 /*---------------------------------------------------------------------
