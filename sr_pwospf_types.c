@@ -5,6 +5,7 @@
 #include "sr_integration.h"
 #include "lwtcp/lwip/inet.h"
 #include "sr_ip.h"
+#include "sr_neighbor_db.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -143,44 +144,11 @@ void pwospf_send_lsu() {
     // get instance of router 
     struct sr_instance* sr_inst = get_sr();
     struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);    
-    // find the number of neighbors of all interfaces
-    int num_neighbors = 0;
-    int i = 0;
-    for( i = 0; i < router->num_interfaces ; i++) {
-       num_neighbors = num_neighbors + llist_size(router->interface[i].neighbor_list);
-    }
-    //display total number of neighbors
-    printf(" ** pwospf_send_lsu(..) total neighbors: %d\n", num_neighbors);
-    printf(" ** pwospf_send_lsu(..) total interfaces: %d\n", router->num_interfaces);
-    int num_adverts_calc = num_neighbors + router->num_interfaces;
-    printf(" ** pwospf_send_lsu(..) total adverts: %d\n", num_adverts_calc);
-    // initially allocate mem for interfaces
-    byte* ls_adverts = (byte*) malloc_or_die(sizeof(pwospf_ls_advert_t) * num_adverts_calc);
     int num_adverts = 0;
+    byte* ls_adverts = get_ls_adverts(router, &num_adverts);
+    int i = 0;
     node* first = NULL;
     neighbor_t* neighbor = NULL;
-    for( i = 0; i < router->num_interfaces ; i++) {
-       memcpy(ls_adverts + num_adverts * sizeof(pwospf_ls_advert_t), &router->interface[i].ip, sizeof(uint32_t));
-       memcpy(ls_adverts + sizeof(uint32_t) + num_adverts * sizeof(pwospf_ls_advert_t), &router->interface[i].subnet_mask, sizeof(uint32_t));
-       memcpy(ls_adverts + sizeof(uint32_t) * 2 + num_adverts * sizeof(pwospf_ls_advert_t), &router->interface[i].router_id, sizeof(uint32_t));
-       num_adverts++;
-       // now iterate this interface's neighbors list
-       first = router->interface[i].neighbor_list; 
-       pthread_mutex_lock(&router->interface[i].neighbor_lock);
-       while(first != NULL) {
-          // get neighbor
-          neighbor = (neighbor_t*) first->data; 
-          if(neighbor != NULL) {
-             //copy neighbor info
-             memcpy(ls_adverts + num_adverts * sizeof(pwospf_ls_advert_t), &neighbor->ip, sizeof(uint32_t));
-             memcpy(ls_adverts + sizeof(uint32_t) + num_adverts * sizeof(pwospf_ls_advert_t), &neighbor->mask, sizeof(uint32_t));
-             memcpy(ls_adverts + sizeof(uint32_t) * 2 + num_adverts * sizeof(pwospf_ls_advert_t), &neighbor->id, sizeof(uint32_t));
-             num_adverts++;
-          }
-          first = first->next;
-       }
-       pthread_mutex_unlock(&router->interface[i].neighbor_lock);
-    } 
     printf(" ** pwospf_send_lsu(..) number of adverts: %d\n", num_adverts);
     // now create lsu_packet
     pwospf_lsu_packet_t *lsu_packet = (pwospf_lsu_packet_t*) malloc_or_die(sizeof(pwospf_lsu_packet_t));
@@ -190,6 +158,7 @@ void pwospf_send_lsu() {
     uint16_t ttl = PWOSPF_LSU_TTL;
     lsu_packet->ttl = htons(ttl);
     lsu_packet->no_of_adverts = htonl(num_adverts);
+    printf("whaaaaa\n");
     // calculate length of entire pwospf packet
     uint16_t pwospf_packet_len = sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_header_t) + sizeof(pwospf_ls_advert_t) * num_adverts;
     //make pwospf header
