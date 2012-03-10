@@ -18,7 +18,8 @@ void neighbor_db_add_interfaces(sr_router* router) {
    router_entry_t src = create_router_entry_t(router->interface[0].ip, router->interface[0].subnet_mask, router->interface[0].router_id);
    router_entry_t dst;
    for( i = 0; i < router->num_interfaces; i++) {
-      dst = create_router_entry_t(router->interface[i].ip, router->interface[i].subnet_mask, 0);
+      // store subnet: apply mask
+      dst = create_router_entry_t((router->interface[i].ip & router->interface[i].subnet_mask), router->interface[i].subnet_mask, 0);
       add_neighbor_vertex_t(router, src, dst);
    }
 }
