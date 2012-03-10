@@ -1,6 +1,8 @@
 #include "sr_neighbor_db.h"
 #include "cli/helper.h"
 
+#include <string.h>
+
 void neighbor_db_init(sr_router* router) {
    printf(" ** neighbor_db_init(..) called \n");
    router->neighbor_db = (neighbor_db_t*) malloc_or_die(sizeof(neighbor_db_t));
@@ -104,4 +106,33 @@ void display_neighbor_vertices(sr_router* router) {
    pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
    llist_display_all(router->neighbor_db->neighbor_db_list, display_neighbor_vertex_t);
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+}
+
+int size_neighbor_vertex_t(sr_router* router) {
+   int size = 0;
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   size = llist_size(router->neighbor_db->neighbor_db_list);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   return size;
+}
+
+byte* get_ls_adverts(sr_router* router, int* size) {
+   printf(" ** get_ls_adverts(..) called \n"); 
+   int list_size = size_neighbor_vertex_t(router);
+   *size = list_size;
+   byte* ls_adverts = (byte*) malloc_or_die(sizeof(pwospf_ls_advert_t) * list_size);
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   node* head = router->neighbor_db->neighbor_db_list;
+   neighbor_vertex_t *neighbor_vertex;
+   int i = 0;
+   while(head != NULL) {
+      neighbor_vertex = head->data;
+      memcpy(ls_adverts + sizeof(pwospf_ls_advert_t) * i, &neighbor_vertex->dst.subnet, 4);
+      memcpy(ls_adverts + 4 + sizeof(pwospf_ls_advert_t) * i, &neighbor_vertex->dst.mask, 4);
+      memcpy(ls_adverts + 8 + sizeof(pwospf_ls_advert_t) * i, &neighbor_vertex->dst.router_id, 4);
+      head = head->next;
+      i++;
+   }
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   return ls_adverts;
 }
