@@ -56,23 +56,22 @@ router_entry_t create_router_entry_t(uint32_t subnet, uint32_t mask, uint32_t ro
    return router_entry;
 }
 
-neighbor_vertex_t create_neighbor_vertex_t(router_entry_t src, router_entry_t dst) {
-   neighbor_vertex_t neighbor_vertex;
-   neighbor_vertex.src = src;
-   neighbor_vertex.dst = dst;
-   neighbor_vertex.visited = 0;
-   neighbor_vertex.timestamp = (struct timeval*) malloc_or_die(sizeof(struct timeval));
-   gettimeofday(neighbor_vertex.timestamp, NULL);
+neighbor_vertex_t* create_neighbor_vertex_t(router_entry_t src, router_entry_t dst) {
+   neighbor_vertex_t* neighbor_vertex = (neighbor_vertex_t*) malloc_or_die(sizeof(neighbor_vertex_t));
+   neighbor_vertex->src = src;
+   neighbor_vertex->dst = dst;
+   neighbor_vertex->visited = 0;
+   neighbor_vertex->timestamp = (struct timeval*) malloc_or_die(sizeof(struct timeval));
+   gettimeofday(neighbor_vertex->timestamp, NULL);
    return neighbor_vertex;
 }
 
 void add_neighbor_vertex_t(sr_router* router, router_entry_t src, router_entry_t dst) {
    printf(" ** add_neighbor_vertex_t(..) called\n");
-   neighbor_vertex_t neighbor_vertex = create_neighbor_vertex_t(src, dst);
+   neighbor_vertex_t* neighbor_vertex = create_neighbor_vertex_t(src, dst);
    pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
-   router->neighbor_db->neighbor_db_list = llist_insert_sorted(router->neighbor_db->neighbor_db_list, predicate_ip_sort_vertex_t, (void*) &neighbor_vertex);
+   router->neighbor_db->neighbor_db_list = llist_insert_sorted(router->neighbor_db->neighbor_db_list, predicate_ip_sort_vertex_t, (void*) neighbor_vertex);
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
-   display_neighbor_vertices(router);
 }
 
 bool compare_neighbor_vertex_t(neighbor_vertex_t *v1, neighbor_vertex_t *v2) {

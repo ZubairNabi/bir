@@ -25,7 +25,7 @@ router_entry_t create_router_entry_t_advert(pwospf_ls_advert_t* advert);
 
 router_entry_t create_router_entry_t(uint32_t subnet, uint32_t mask, uint32_t router_id);
 
-neighbor_vertex_t create_neighbor_vertex_t(router_entry_t src, router_entry_t dst);
+neighbor_vertex_t* create_neighbor_vertex_t(router_entry_t src, router_entry_t dst);
 
 void add_neighbor_vertex_t(sr_router* router, router_entry_t src, router_entry_t dst);
 
