@@ -31,6 +31,7 @@
 #include "sr_rtable.h"
 #include "sr_pwospf.h"
 #include "sr_rt.h"
+#include "sr_neighbor_db.h"
 
 #ifdef _CPUMODE_
 #include "sr_cpu_extension_nf2.h"
@@ -92,6 +93,9 @@ void sr_integ_hw_setup(struct sr_instance* sr)
     pwospf_init(subsystem);
     // initialize neighbor db
     neighbor_db_init(subsystem);
+    // display initial state of neighbor db
+    printf(" ** sr_integ_hw(..) initial state of neighbor db\n");
+    display_neighbor_vertices(subsystem);
 } /* -- sr_integ_hw_setup -- */
 
 /*---------------------------------------------------------------------

@@ -38,3 +38,7 @@ bool check_neighbor_vertex_t(sr_router* router, neighbor_vertex_t* vertex);
 void update_neighbor_vertex_t(sr_router* router, neighbor_vertex_t* vertex);
 
 void neighbor_db_add_interfaces(sr_router* router);
+
+void neighbor_db_add_static(sr_router* router);
+
+void display_neighbor_vertices(sr_router* router);
