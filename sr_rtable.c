@@ -77,6 +77,8 @@ void rrtable_route_add( rtable_t *rtable,
                        addr_ip_t dest, addr_ip_t gw, addr_ip_t mask,
                        interface_t* intf, char type ) {
    printf(" ** rrtable_route_add(..) called \n");
+   // get subnet
+   dest = dest & mask;
    // make route_t object
    route_t* route = make_route_t(type, dest, *intf, gw, mask);
    // lock table
