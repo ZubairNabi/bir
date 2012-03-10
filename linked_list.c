@@ -34,19 +34,16 @@ node* llist_insert_beginning(node* Head, void* num)
    return Head;
 }
 
-void llist_display_all(node* Head, int(*func)(void*))
-{
-   struct Node *cur_ptr;
+void llist_display_all(node* Head, int(*func)(void*)) {
+   node* cur_ptr = Head;
 
-   cur_ptr=Head;
-
-   if(cur_ptr==NULL) {
+   if(cur_ptr == NULL) {
       printf("Empty\n");
    }
    else {
-       while(cur_ptr!=NULL) {
+       while(cur_ptr != NULL) {
            func(cur_ptr->data);
-           cur_ptr=cur_ptr->next;
+           cur_ptr = cur_ptr->next;
        }
    }
 }
@@ -493,8 +490,8 @@ int llist_size(node *head) {
 int predicate_ip_sort_vertex_t(void* listdata1, void* listdata2) {
   neighbor_vertex_t *listdata1_vertex = (neighbor_vertex_t*) listdata1;
   neighbor_vertex_t *listdata2_vertex = (neighbor_vertex_t*) listdata2;
-    if( compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->dst.subnet) == 1 ||
-  compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->dst.subnet) == 0)
+    if( compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->src.subnet) == 1 ||
+  compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->src.subnet) == 0)
        return 1;
     else
        return 0;
