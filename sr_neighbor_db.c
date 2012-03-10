@@ -16,8 +16,9 @@ void neighbor_db_add_interfaces(sr_router* router) {
    printf(" ** neighbor_db_add_interfaces(..) called \n");
    int i;
    router_entry_t src = create_router_entry_t(router->interface[0].ip, router->interface[0].subnet_mask, router->interface[0].router_id);
+   router_entry_t dst;
    for( i = 0; i < router->num_interfaces; i++) {
-      router_entry_t dst = create_router_entry_t(router->interface[i].ip, router->interface[0].subnet_mask, 0);
+      dst = create_router_entry_t(router->interface[i].ip, router->interface[i].subnet_mask, 0);
       add_neighbor_vertex_t(router, src, dst);
    }
 }
@@ -71,6 +72,7 @@ void add_neighbor_vertex_t(sr_router* router, router_entry_t src, router_entry_t
    pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
    router->neighbor_db->neighbor_db_list = llist_insert_sorted(router->neighbor_db->neighbor_db_list, predicate_ip_sort_vertex_t, (void*) &neighbor_vertex);
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   display_neighbor_vertices(router);
 }
 
 bool compare_neighbor_vertex_t(neighbor_vertex_t *v1, neighbor_vertex_t *v2) {
