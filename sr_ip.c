@@ -208,7 +208,7 @@ void make_ip_packet_reply(byte* payload, uint8_t payload_len, struct in_addr src
    ip_header->ip_sum = 0;
    ip_header->ip_sum = htons(htons(inet_chksum((void*)ip_header, IP_HEADER_MIN_LEN)));
    // generate ip packet
-   uint8_t packet_len = ntohs(ip_header->ip_len);
+   uint16_t packet_len = ntohs(ip_header->ip_len);
    byte* ip_packet = (byte*) malloc_or_die(packet_len);
    memcpy(ip_packet, ip_header, IP_HEADER_MIN_LEN);
    memcpy(ip_packet + IP_HEADER_MIN_LEN, payload, payload_len); 
@@ -310,7 +310,7 @@ void make_ip_packet(byte* payload, uint8_t payload_len, struct in_addr src, stru
    ip_header->ip_sum = 0;
    ip_header->ip_sum = htons(htons(inet_chksum((void*)ip_header, IP_HEADER_MIN_LEN)));
    // generate ip packet
-   uint8_t packet_len = ntohs(ip_header->ip_len);
+   uint16_t packet_len = ntohs(ip_header->ip_len);
    byte* ip_packet = (byte*) malloc_or_die(packet_len);
    memcpy(ip_packet, ip_header, IP_HEADER_MIN_LEN);
    memcpy(ip_packet + IP_HEADER_MIN_LEN, payload, payload_len);

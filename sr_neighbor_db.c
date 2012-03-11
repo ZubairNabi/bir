@@ -157,3 +157,10 @@ bool check_neighbor_vertex_t_src_ip(sr_router* router, uint32_t ip) {
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
    return ret;
 }
+
+bool check_neighbor_vertex_t_dst_ip(sr_router* router, uint32_t ip) {
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   bool ret = llist_exists(router->neighbor_db->neighbor_db_list, predicate_vertex_dst_ip, (void*) &ip);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   return ret;
+}
