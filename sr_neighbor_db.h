@@ -46,3 +46,7 @@ void display_neighbor_vertices(sr_router* router);
 int size_neighbor_vertex_t(sr_router* router);
 
 byte* get_ls_adverts(sr_router* router, int* size);
+
+void update_neighbor_vertex_t_rid(sr_router* router, uint32_t ip, uint32_t rid);
+
+bool check_neighbor_vertex_t_src_ip(sr_router* router, uint32_t ip);

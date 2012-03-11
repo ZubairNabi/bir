@@ -46,6 +46,11 @@ void pwospf_hello_type(struct ip* ip_header, byte* payload, uint8_t payload_len,
          intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_ip_neighbor_t, (void*) neighbor);
          pthread_mutex_unlock(&intf->neighbor_lock);
       }
+      // update info in neighbor db
+      // get instance of router 
+      struct sr_instance* sr_inst = get_sr();
+      struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+      update_neighbor_vertex_t_rid(router, ip_header->ip_src.s_addr, pwospf_header->router_id);
    } else {
       printf(" ** pwospf_hello_type(..) network mask or hello interval incorrect\n");
    }
@@ -87,7 +92,9 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint8_t payload_len, p
              intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
              pthread_mutex_unlock(&intf->neighbor_lock);
              display_neighbor_t((void*) neighbor);
-             // add adverts to db
+             // create src vertex
+             neighbor_vertex_t* src = (neighbor_vertex_t*) malloc_or_die(sizeof(neighbor_vertex_t));
+             //TODO: add adverts to db
              printf(" ** pwospf_lsu_type(..) adding adverts to neighbor db\n");
              int i;
              pwospf_ls_advert_t* ls_advert = (pwospf_ls_advert_t*) malloc_or_die(sizeof(pwospf_ls_advert_t));
@@ -97,21 +104,32 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint8_t payload_len, p
                 memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
                 display_ls_advert(ls_advert);
              }
+             //TODO: run Djikstra's algo
           } else {
           // check if the previous seq was same
           if(neighbor->last_lsu_packet.seq != lsu_packet->seq) {
              // nope, new seq
+             neighbor->last_lsu_packet = *lsu_packet;
              // flood to all neighbors
              pwospf_flood_lsu(ip_header, pwospf_header, lsu_packet, neighbor, intf);
              // check if content the same
              if(strcmp((char*) neighbor->last_adverts, (char*) (payload + 8)) != 0) {
              // nope new content
+             // free mem, as new adverts might need different memory
+             free(neighbor->last_adverts);
+             // now allocate new mem space
+             neighbor->last_adverts = (byte*) malloc_or_die(payload_len - 8);
+             memcpy(neighbor->last_adverts, payload + 8, payload_len - 8);
              // update packet info in neighbor list
              pthread_mutex_lock(&intf->neighbor_lock);
              intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
              pthread_mutex_unlock(&intf->neighbor_lock);
              // check if entry exists in DB
-             //TODO:
+             struct sr_instance* sr_inst = get_sr();
+             struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+             if(check_neighbor_vertex_t_src_ip(router, neighbor->ip) == 1) {
+                //TODO: run Djikstra's algo
+             }
              } else {
                 printf(" ** pwospf_lsu_type(..) error, content same as previous from this neighbor, only updating time stamp in DB\n");  
                 //TODO: update timestamp in DB
@@ -150,6 +168,8 @@ void pwospf_send_lsu() {
     node* first = NULL;
     neighbor_t* neighbor = NULL;
     printf(" ** pwospf_send_lsu(..) number of adverts: %d\n", num_adverts);
+    printf(" ** pwospf_send_lsu(..) adverts:\n");
+    display_neighbor_vertices(router);
     // now create lsu_packet
     pwospf_lsu_packet_t *lsu_packet = (pwospf_lsu_packet_t*) malloc_or_die(sizeof(pwospf_lsu_packet_t));
     //increment lsu sequence
@@ -158,7 +178,6 @@ void pwospf_send_lsu() {
     uint16_t ttl = PWOSPF_LSU_TTL;
     lsu_packet->ttl = htons(ttl);
     lsu_packet->no_of_adverts = htonl(num_adverts);
-    printf("whaaaaa\n");
     // calculate length of entire pwospf packet
     uint16_t pwospf_packet_len = sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_header_t) + sizeof(pwospf_ls_advert_t) * num_adverts;
     //make pwospf header
@@ -256,5 +275,5 @@ void pwospf_flood_lsu(struct ip* ip_header, pwospf_header_t* pwospf_header, pwos
 void display_ls_advert(pwospf_ls_advert_t* packet) {
    printf(" ** subnet: %s, ", quick_ip_to_string(packet->subnet));
    printf("mask: %s, ", quick_ip_to_string(packet->mask));
-   printf("router_id: %s\n", quick_ip_to_string(ntohl(packet->router_id)));
+   printf("router_id: %s\n", quick_ip_to_string(packet->router_id));
 }

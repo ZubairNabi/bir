@@ -136,3 +136,24 @@ byte* get_ls_adverts(sr_router* router, int* size) {
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
    return ls_adverts;
 }
+
+void update_neighbor_vertex_t_rid(sr_router* router, uint32_t ip, uint32_t rid) {
+   printf(" ** update_neighbor_vertex_t_rid(..) called \n");
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   node* ret = llist_find(router->neighbor_db->neighbor_db_list, predicate_vertex_dst_ip, (void*) &ip);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   if (ret != NULL) {
+      neighbor_vertex_t* vertex = (neighbor_vertex_t*) ret->data;
+      vertex->dst.router_id = rid;
+      pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+      router->neighbor_db->neighbor_db_list = llist_update_sorted_delete(router->neighbor_db->neighbor_db_list, predicate_vertex_neighbor_vertex_t, (void*) vertex);
+      pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   }
+}
+
+bool check_neighbor_vertex_t_src_ip(sr_router* router, uint32_t ip) {
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   bool ret = llist_exists(router->neighbor_db->neighbor_db_list, predicate_vertex_src_ip, (void*) &ip);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   return ret;
+}

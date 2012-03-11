@@ -530,3 +530,22 @@ node* llist_update_sorted_delete(node *head, int(*func)(void*,void*), void *data
       return first;
    }
 }
+
+int predicate_vertex_src_ip(void *listdata, void *ip) {
+        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
+        uint32_t *ip_test = (uint32_t*) ip;
+        if( listdata_entry->src.subnet == *ip_test)
+           return 1;
+        else
+           return 0;
+}
+
+int predicate_vertex_dst_ip(void *listdata, void *ip) {
+        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
+        uint32_t *ip_test = (uint32_t*) ip;
+        *ip_test = *ip_test & listdata_entry->dst.mask;
+        if( listdata_entry->dst.subnet == *ip_test)
+           return 1;
+        else
+           return 0;
+}
