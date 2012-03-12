@@ -256,7 +256,7 @@ void cli_show_ospf() {
 }
 
 void cli_show_ospf_neighbors() {
-    cli_send_str( "not yet implemented: show list of neighbors for each interface of SR\n" );
+   display_all_interfaces_neighbors_str();
 }
 
 void cli_show_ospf_topo() {

@@ -128,3 +128,56 @@ void display_all_interfaces_str() {
    }
    }
 }
+
+void display_all_interfaces_neighbors_str() {
+   char *str;
+   node* head;
+   neighbor_t* entry;
+   asprintf(&str, "Name, MAC, IP, Mask, Hello Interval, Status\n");
+   cli_send_str(str);
+   free(str);
+   // get instance of router 
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   int i;
+   interface_t* intf;
+   for( i = 0; i<router->num_interfaces; i++) {
+         intf = &router->interface[i];
+         cli_send_str("Interface: \n");
+         asprintf(&str, "%s, %s, %s, ", intf->name,  quick_mac_to_string(intf->mac.octet), quick_ip_to_string(intf->ip));
+         cli_send_str(str);
+         free(str);
+         asprintf(&str, "%s, %u, ", quick_ip_to_string(intf->subnet_mask), intf->helloint);
+         cli_send_str(str);
+         free(str);
+   if(intf->enabled == TRUE) {
+      asprintf(&str, "enabled\n");
+      cli_send_str(str);
+      free(str);
+   }
+   else {
+      asprintf(&str, "disabled\n");
+      cli_send_str(str);
+      free(str);
+   }
+   // now display its neighbors
+   pthread_mutex_lock(&intf->neighbor_lock);
+   head = intf->neighbor_list;
+   while(head != NULL) {
+      entry = (neighbor_t*) head->data;
+      cli_send_str("Neighbor(s): \n");
+      cli_send_str("ID, IP, Timestamp, Hello Int, Mask, LSU received\n");
+      asprintf(&str, "%lu, %s, %ld.%06ld, %u, %s", entry->id, quick_ip_to_string(entry->ip), entry->timestamp->tv_sec, entry->timestamp->tv_usec, ntohs(entry->helloint), quick_ip_to_string(entry->mask));
+      cli_send_str(str);
+      free(str);
+      if(entry->last_adverts == NULL) {
+         cli_send_str(" N\n");
+      } else {
+         cli_send_str(" Y\n");
+      }
+      head = head->next;
+   }
+   pthread_mutex_unlock(&intf->neighbor_lock);
+   }
+}
+

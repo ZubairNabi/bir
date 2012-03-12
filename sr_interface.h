@@ -63,6 +63,8 @@ void toggle_interface(interface_t* intf, int enabled);
 
 bool check_interface(interface_t* intf);
 
+void display_all_interfaces_neighbors_str();
+
 /**
  * Reads in a list of interfaces from filename and adds them to the router
  * subsystem in sr.
@@ -72,53 +74,9 @@ bool check_interface(interface_t* intf);
  */
 void sr_read_intf_from_file( struct sr_router* router, const char* filename );
 
-#define STR_INTF_HDR_MAX_LEN 55
-#define STR_INTF_MAX_LEN     (46+SR_NAMELEN)
-
-/**
- * Fills buf with a string header for an interface representation.  It takes up to
- * STR_INTF_HDR_MAX_LEN characters (including the terminating NUL).
- *
- * @param buf  buffer to place the string in
- * @param len  length of the buffer
- *
- * @return number of bytes written to create the header string, or 0 if there
- *         was not enough space in buf to write it
- */
-int intf_header_to_string( char* buf, int len );
-
-/**
- * Fills buf with a string representation of an interface.  It takes up to
- * STR_INTF_MAX_LEN characters.
- *
- * @param buf  buffer to place the string in
- * @param len  length of the buffer
- *
- * @return number of bytes written to create the interface string, or 0 if there
- *         was not enough space in buf to write it
- */
-int intf_to_string( interface_t* intf, char* buf, int len );
-
-#define STR_MAX_NEIGHBORS     32
-#define STR_INTF_NEIGHBOR_MAX_LEN  (82*(STR_MAX_NEIGHBORS+1))
-int intf_neighbor_header_to_string( char* buf, int len );
-
-/** intf_to_string along with the neighors */
-int intf_neighbor_to_string( interface_t* intf, char* buf, int len );
-
 #ifdef _CPUMODE_
 #define STR_INTF_HW_MAX_LEN 1024 /* actual max is 775; this provides some slop */
 
-/**
- * Fills buf with a string representation of a hardware interface.  It takes up
- * to STR_INTF_HW_MAX_LEN characters.
- *
- * @param buf  buffer to place the string in
- * @param len  length of the buffer
- *
- * @return number of bytes written to create the interface string, or 0 if there
- *         was not enough space in buf to write it
- */
 int intf_hw_to_string( struct router_t* router,
                        interface_t* intf, char* buf, int len );
 #endif /* _CPUMODE_ */
