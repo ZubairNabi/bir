@@ -16,11 +16,8 @@ node *llist_new() {
    return head;
 }
 
-node* llist_insert_beginning(node* Head, void* num)
-{
-   node *temp;
-
-   temp=(struct Node *)malloc_or_die(sizeof(struct Node));
+node* llist_insert_beginning(node* Head, void* num) {
+   node *temp= (node*) malloc_or_die(sizeof(node));
    temp->data = num;
    temp->next = NULL;
    if (Head == NULL) {
@@ -36,7 +33,6 @@ node* llist_insert_beginning(node* Head, void* num)
 
 void llist_display_all(node* Head, int(*func)(void*)) {
    node* cur_ptr = Head;
-
    if(cur_ptr == NULL) {
       printf("Empty\n");
    }
@@ -48,28 +44,23 @@ void llist_display_all(node* Head, int(*func)(void*)) {
    }
 }
 
-node* llist_remove(node* Head, int(*func)(void*,void*), void* num)
-{
+node* llist_remove(node* Head, int(*func)(void*,void*), void* num) {
    node *prev_ptr, *cur_ptr;
-
-   cur_ptr=Head;
+   cur_ptr = Head;
    while(cur_ptr != NULL) {
       if(func(cur_ptr->data, num) == 1) {
-         if(cur_ptr==Head)
-         {
+         if(cur_ptr==Head) {
             Head=cur_ptr->next;
             free(cur_ptr);
             return Head;
          }
-         else
-         {
+         else {
             prev_ptr->next=cur_ptr->next;
             free(cur_ptr);
             return Head;
          }
       }
-      else
-      {
+      else {
          prev_ptr=cur_ptr;
          cur_ptr=cur_ptr->next;
       }
@@ -548,4 +539,15 @@ int predicate_vertex_dst_ip(void *listdata, void *ip) {
            return 1;
         else
            return 0;
+}
+
+int llist_size_predicate(node *head, int(*func)(void*,void*), void *data) {
+   int count = 0;
+   node* temp = head;
+   while(temp) {
+      if(func(temp->data, data) == 1);
+      count++;
+      temp = temp->next;
+   }
+   return count;
 }
