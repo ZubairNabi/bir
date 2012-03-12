@@ -201,3 +201,11 @@ void display_neighbor_vertices_src(sr_router* router) {
    llist_display_all_predicate(router->neighbor_db->neighbor_db_list, display_neighbor_vertex_t, predicate_vertex_src_ip, (void*) &router->interface[0].ip);
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
 }
+
+void update_neighbor_vertex_t_timestamp(sr_router* router, router_entry_t src, router_entry_t dst) {
+   printf(" ** update_neighbor_vertex_t_timestamp(..) called \n");
+   neighbor_vertex_t* vertex = create_neighbor_vertex_t(src, dst);
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   router->neighbor_db->neighbor_db_list = llist_update_sorted_delete(router->neighbor_db->neighbor_db_list, predicate_vertex_neighbor_vertex_t, (void*) vertex);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+}

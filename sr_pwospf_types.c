@@ -184,7 +184,23 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                   }
                 } else {
                      printf(" ** pwospf_lsu_type(..) error, content same as previous from this neighbor, only updating time stamp in DB\n");  
-                     //TODO: update timestamp in DB
+                     // update timestamp
+                     router_entry_t src, dst;
+                     src.subnet = neighbor->ip;
+                     src.mask = neighbor->mask;
+          	     src.router_id = neighbor->id;
+                     int i;
+                     pwospf_ls_advert_t* ls_advert = (pwospf_ls_advert_t*) malloc_or_die(sizeof(pwospf_ls_advert_t));
+                     for(i = 0; i < ntohl(lsu_packet->no_of_adverts) ; i++) {
+                      memcpy(&ls_advert->subnet, payload + sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_ls_advert_t) * i, 4);
+                      memcpy(&ls_advert->mask, payload + sizeof(pwospf_lsu_packet_t) + 4 + sizeof(pwospf_ls_advert_t) * i, 4);
+                      memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
+                      dst.subnet = ls_advert->subnet;
+                      dst.mask = ls_advert->mask;
+                      dst.router_id = ls_advert->router_id;
+                      update_neighbor_vertex_t_timestamp(router, src, dst);
+                   }
+
              }
           } else {
               printf(" ** pwospf_lsu_type(..) error, seq same as previous one from this neighbor, dropping\n");
