@@ -4,6 +4,7 @@
 #include "sr_interface.h"
 #include "sr_common.h"
 #include "sr_base_internal.h"
+#include "sr_integration.h"
 #include "cli/helper.h"
 #include "sr_router.h"
 #include "sr_neighbor.h"
@@ -82,4 +83,34 @@ void toggle_interface(interface_t* intf, int enabled) {
 
 bool check_interface(interface_t* intf) {
    return intf->enabled;
+}
+
+void display_all_interfaces() {
+   // get instance of router 
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   int i;
+   for( i = 0; i<router->num_interfaces; i++) {
+      display_interface(&router->interface[i]);
+   }
+}
+
+char* display_all_interfaces_str() {
+   char *str;
+   int written = asprintf(&str, "Name, MAC, IP, Mask, Hello Interval, Status\n");
+   // get instance of router 
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   int i;
+   interface_t* intf;
+   for( i = 0; i<router->num_interfaces; i++) {
+         intf = &router->interface[i];
+         written = sprintf(str + written, "%s, %s, %s, ", intf->name,  quick_mac_to_string(intf->mac.octet), quick_ip_to_string(intf->ip)) + written;
+         written = sprintf(str + written, "%s, %u, ", quick_ip_to_string(intf->subnet_mask), intf->helloint) + written;
+   if(intf->enabled == TRUE)
+      written = sprintf(str + written, "enabled\n") + written;
+   else
+      written = sprintf(str + written, "disabled\n") + written;
+   }
+   return str;
 }

@@ -55,6 +55,10 @@ void interface_init(struct sr_router* subsystem);
 
 void display_interface(interface_t* intf);
 
+void display_all_interfaces();
+
+char* display_all_interfaces_str();
+
 void toggle_interface(interface_t* intf, int enabled);
 
 bool check_interface(interface_t* intf);

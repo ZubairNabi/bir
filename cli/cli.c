@@ -12,6 +12,7 @@
 #include "socket_helper.h"       /* writenstr()                       */
 #include "../sr_base_internal.h" /* struct sr_instance                */
 #include "../sr_icmp_types_send.h"
+#include "../sr_interface.h"
 
 /* temporary */
 #include "cli_stubs.h"
@@ -223,7 +224,8 @@ void cli_show_ip_arp() {
 }
 
 void cli_show_ip_intf() {
-    cli_send_str( "not yet implemented: show interfaces on SR\n" );
+    cli_send_str( "\nShowing interfaces:\n" );
+    cli_send_str(display_all_interfaces_str());
 }
 
 void cli_show_ip_route() {
