@@ -545,9 +545,23 @@ int llist_size_predicate(node *head, int(*func)(void*,void*), void *data) {
    int count = 0;
    node* temp = head;
    while(temp) {
-      if(func(temp->data, data) == 1);
-      count++;
+      if(func(temp->data, data) == 1)
+         count++;
       temp = temp->next;
    }
    return count;
+}
+
+void llist_display_all_predicate(node* Head, int(*func)(void*), int(*func2)(void*,void*), void* data) {
+   node* cur_ptr = Head;
+   if(cur_ptr == NULL) {
+      printf("Empty\n");
+   }
+   else {
+       while(cur_ptr != NULL) {
+           if(func2(cur_ptr->data, data) == 1)
+              func(cur_ptr->data);
+           cur_ptr = cur_ptr->next;
+       }
+   }
 }

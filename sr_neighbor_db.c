@@ -164,3 +164,40 @@ bool check_neighbor_vertex_t_dst_ip(sr_router* router, uint32_t ip) {
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
    return ret;
 }
+
+byte* get_ls_adverts_src(sr_router* router, int* size) {
+   printf(" ** get_ls_adverts_src(..) called \n");
+   int list_size = size_neighbor_vertex_t_src(router, router->interface[0].ip);
+   *size = list_size;
+   byte* ls_adverts = (byte*) malloc_or_die(sizeof(pwospf_ls_advert_t) * list_size);
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   node* head = router->neighbor_db->neighbor_db_list;
+   neighbor_vertex_t *neighbor_vertex;
+   int i = 0;
+   while(head != NULL) {
+      neighbor_vertex = head->data;
+      if(predicate_vertex_src_ip((void*) neighbor_vertex, (void*) &router->interface[0].ip) == 1) {
+         memcpy(ls_adverts + sizeof(pwospf_ls_advert_t) * i, &neighbor_vertex->dst.subnet, 4);
+         memcpy(ls_adverts + 4 + sizeof(pwospf_ls_advert_t) * i, &neighbor_vertex->dst.mask, 4);
+         memcpy(ls_adverts + 8 + sizeof(pwospf_ls_advert_t) * i, &neighbor_vertex->dst.router_id, 4);
+         i++;
+      }
+      head = head->next;
+   }
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   return ls_adverts;
+}
+
+int size_neighbor_vertex_t_src(sr_router* router, uint32_t ip) {
+   int size = 0;
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   size = llist_size_predicate(router->neighbor_db->neighbor_db_list, predicate_vertex_src_ip, (void*) &ip);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   return size;
+}
+
+void display_neighbor_vertices_src(sr_router* router) {
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   llist_display_all_predicate(router->neighbor_db->neighbor_db_list, display_neighbor_vertex_t, predicate_vertex_src_ip, (void*) &router->interface[0].ip);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+}

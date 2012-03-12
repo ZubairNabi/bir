@@ -215,13 +215,13 @@ void pwospf_send_lsu() {
     struct sr_instance* sr_inst = get_sr();
     struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);    
     int num_adverts = 0;
-    byte* ls_adverts = get_ls_adverts(router, &num_adverts);
+    byte* ls_adverts = get_ls_adverts_src(router, &num_adverts);
     int i = 0;
     node* first = NULL;
     neighbor_t* neighbor = NULL;
     printf(" ** pwospf_send_lsu(..) number of adverts: %d\n", num_adverts);
     printf(" ** pwospf_send_lsu(..) adverts:\n");
-    display_neighbor_vertices(router);
+    display_neighbor_vertices_src(router);
     // now create lsu_packet
     pwospf_lsu_packet_t *lsu_packet = (pwospf_lsu_packet_t*) malloc_or_die(sizeof(pwospf_lsu_packet_t));
     //increment lsu sequence

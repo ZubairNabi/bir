@@ -51,3 +51,4 @@ node* llist_update_sorted_delete(node *head, int(*func)(void*,void*), void *data
 int predicate_vertex_src_ip(void *listdata, void *ip);
 int predicate_vertex_dst_ip(void *listdata, void *ip); 
 int llist_size_predicate(node *head, int(*func)(void*,void*), void *data);
+void llist_display_all_predicate(node* Head, int(*func)(void*), int(*func2)(void*,void*), void* data);

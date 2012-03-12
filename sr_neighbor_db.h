@@ -52,3 +52,9 @@ void update_neighbor_vertex_t_rid(sr_router* router, uint32_t ip, uint32_t rid);
 bool check_neighbor_vertex_t_src_ip(sr_router* router, uint32_t ip);
 
 bool check_neighbor_vertex_t_dst_ip(sr_router* router, uint32_t ip);
+
+byte* get_ls_adverts_src(sr_router* router, int* size);
+
+int size_neighbor_vertex_t_src(sr_router* router, uint32_t ip);
+
+void display_neighbor_vertices_src(sr_router* router);
