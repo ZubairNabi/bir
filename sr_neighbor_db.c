@@ -64,6 +64,7 @@ neighbor_vertex_t* create_neighbor_vertex_t(router_entry_t src, router_entry_t d
    neighbor_vertex->src = src;
    neighbor_vertex->dst = dst;
    neighbor_vertex->visited = 0;
+   neighbor_vertex->cost = 0;
    neighbor_vertex->timestamp = (struct timeval*) malloc_or_die(sizeof(struct timeval));
    gettimeofday(neighbor_vertex->timestamp, NULL);
    return neighbor_vertex;

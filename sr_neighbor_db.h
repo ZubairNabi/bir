@@ -16,7 +16,8 @@ typedef struct neighbor_vertex_t {
    struct timeval* timestamp;
    router_entry_t src;
    router_entry_t dst;
-   int visited;
+   bool visited;
+   int cost;
 } neighbor_vertex_t;
 
 void neighbor_db_init(struct sr_router* router);
