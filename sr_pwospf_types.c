@@ -6,6 +6,7 @@
 #include "lwtcp/lwip/inet.h"
 #include "sr_ip.h"
 #include "sr_neighbor_db.h"
+#include "sr_dijkstra.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -113,7 +114,8 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                 dst.router_id = ls_advert->router_id;
                 add_neighbor_vertex_t(router, src, dst);
              }
-             //TODO: run Djikstra's algo
+             //run Djikstra's algo
+             dijkstra(router); 
              //free(lsu_packet);
              //free(ret);
              //free(neighbor);
@@ -180,7 +182,8 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                       dst.router_id = ls_advert->router_id;
                       add_neighbor_vertex_t(router, src, dst);
                    }
-                  // TODO: run Djikstra's algo
+                  //run Djikstra's algo
+                  dijkstra(router);
                   }
                 } else {
                      printf(" ** pwospf_lsu_type(..) error, content same as previous from this neighbor, only updating time stamp in DB\n");  
