@@ -172,4 +172,6 @@ void cli_traceroute( gross_ip_t* data );
 /** set/unset/show the verbose mode */
 void cli_opt_verbose( gross_option_t* data );
 
+void cli_send_str( const char* str );
+
 #endif /* CLI_H */

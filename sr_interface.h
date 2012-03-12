@@ -57,7 +57,7 @@ void display_interface(interface_t* intf);
 
 void display_all_interfaces();
 
-char* display_all_interfaces_str();
+void display_all_interfaces_str();
 
 void toggle_interface(interface_t* intf, int enabled);
 

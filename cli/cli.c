@@ -13,6 +13,7 @@
 #include "../sr_base_internal.h" /* struct sr_instance                */
 #include "../sr_icmp_types_send.h"
 #include "../sr_interface.h"
+#include "../sr_integration.h"
 
 /* temporary */
 #include "cli_stubs.h"
@@ -69,7 +70,7 @@ struct sr_instance* my_get_sr() {
  * file-scope fd.  If it fails, fd_alive is set to 0.  Does nothing if
  * fd_alive is already 0.
  */
-static void cli_send_str( const char* str ) {
+void cli_send_str( const char* str ) {
     if( fd_alive )
         if( 0 != writenstr( fd, str ) )
             fd_alive = 0;
@@ -220,12 +221,13 @@ void cli_show_ip() {
 }
 
 void cli_show_ip_arp() {
-    cli_send_str( "not yet implemented: show ARP cache of SR\n" );
+    cli_send_str( "\nShowing ARP table contents:\n" );
+    arp_cache_to_string();
 }
 
 void cli_show_ip_intf() {
     cli_send_str( "\nShowing interfaces:\n" );
-    cli_send_str(display_all_interfaces_str());
+    display_all_interfaces_str();
 }
 
 void cli_show_ip_route() {

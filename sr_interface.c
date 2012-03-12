@@ -8,7 +8,10 @@
 #include "cli/helper.h"
 #include "sr_router.h"
 #include "sr_neighbor.h"
+#include "cli/cli.h"
+
 #include <string.h>
+#include <stdlib.h>
 
 interface_t set_interface(struct sr_vns_if* vns_intf) {
    printf(" ** set_interface(..) called \n");
@@ -95,9 +98,11 @@ void display_all_interfaces() {
    }
 }
 
-char* display_all_interfaces_str() {
+void display_all_interfaces_str() {
    char *str;
-   int written = asprintf(&str, "Name, MAC, IP, Mask, Hello Interval, Status\n");
+   asprintf(&str, "Name, MAC, IP, Mask, Hello Interval, Status\n");
+   cli_send_str(str);
+   free(str);
    // get instance of router 
    struct sr_instance* sr_inst = get_sr();
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
@@ -105,12 +110,21 @@ char* display_all_interfaces_str() {
    interface_t* intf;
    for( i = 0; i<router->num_interfaces; i++) {
          intf = &router->interface[i];
-         written = sprintf(str + written, "%s, %s, %s, ", intf->name,  quick_mac_to_string(intf->mac.octet), quick_ip_to_string(intf->ip)) + written;
-         written = sprintf(str + written, "%s, %u, ", quick_ip_to_string(intf->subnet_mask), intf->helloint) + written;
-   if(intf->enabled == TRUE)
-      written = sprintf(str + written, "enabled\n") + written;
-   else
-      written = sprintf(str + written, "disabled\n") + written;
+         asprintf(&str, "%s, %s, %s, ", intf->name,  quick_mac_to_string(intf->mac.octet), quick_ip_to_string(intf->ip));
+         cli_send_str(str);
+         free(str);
+         asprintf(&str, "%s, %u, ", quick_ip_to_string(intf->subnet_mask), intf->helloint);
+         cli_send_str(str);
+         free(str);
+   if(intf->enabled == TRUE) {
+      asprintf(&str, "enabled\n");
+      cli_send_str(str);
+      free(str);
    }
-   return str;
+   else {
+      asprintf(&str, "disabled\n");
+      cli_send_str(str);
+      free(str);
+   }
+   }
 }

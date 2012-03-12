@@ -22,6 +22,7 @@
 #include "sr_icmp.h"
 #include "sr_ip.h"
 #include "sr_icmp_types_send.h"
+#include "cli/cli.h"
 
 // Interval for the ARP cache garbage collector thread in seconds
 #define ARP_GC_INTERVAL_S 5
@@ -401,25 +402,42 @@ int arp_cache_handle_partial_frame( struct sr_router* router,
 /**
  * Fills buf with a string representation of the arp cache.
  *
- * @param buf  buffer to place the string in
- * @param len  length of the buffer
- *
- * @return number of bytes written to create the string, or 0 if there was no
- *         enough space in buf to create the string
  */
-int arp_cache_to_string( arp_cache_t* cache, char* buf, int len ) {
-  // In case we have no entries, make the string empty
-  if (len > 0) buf[0] = 0;
-  // TODO: Return something other than an empty string
-  int i = 0;
-/*  arp_cache_entry_t *item;
-  for(i = 0; i < cache->arp_static_cache_list->size ; i++) {
-       pthread_mutex_lock(&cache->lock_static);
-        item = (arp_cache_entry_t*) array_list_get_item(cache->arp_static_cache_list, i);
-        pthread_mutex_unlock(&cache->lock_static);
-        char* print = (char*) malloc_or_die(STRLEN_IP);
-        ip_to_string(print, item->ip);
-        printf(print);
-        } */
-   return i;
+void arp_cache_to_string() {
+   char *str;
+   cli_send_str("Static entries: \n");
+   asprintf(&str, "IP, MAC, Timestamp\n");
+   cli_send_str(str);
+   free(str);
+   arp_cache_entry_t *item;
+   node* head;
+   // get instance of router 
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   // put static cache
+   pthread_mutex_lock(&router->arp_cache->lock_static);
+   head = router->arp_cache->arp_static_cache_list;
+   while(head != NULL) {
+      item = (arp_cache_entry_t*) head->data;
+      asprintf(&str, "%s, %s, %ld.%06ld\n", quick_ip_to_string(item->ip), quick_mac_to_string(item->mac.octet), item->timeout->tv_sec, item->timeout->tv_usec);
+      cli_send_str(str);
+      free(str);
+      head = head->next;
+   }
+   pthread_mutex_unlock(&router->arp_cache->lock_static);
+   // put dynamic cache
+   cli_send_str("Dynamic entries: \n");
+   asprintf(&str, "IP, MAC, Timestamp\n");
+   cli_send_str(str);
+   free(str);
+   pthread_mutex_lock(&router->arp_cache->lock_dynamic);
+   head = router->arp_cache->arp_cache_list;
+   while(head != NULL) {
+      item = (arp_cache_entry_t*) head->data;
+      asprintf(&str, "%s, %s, %ld.%06ld\n", quick_ip_to_string(item->ip), quick_mac_to_string(item->mac.octet), item->timeout->tv_sec, item->timeout->tv_usec);
+      cli_send_str(str);
+      free(str);
+      head = head->next;
+   }
+   pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
 }

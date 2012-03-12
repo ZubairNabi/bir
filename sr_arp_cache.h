@@ -142,10 +142,5 @@ int arp_cache_handle_partial_frame( struct sr_router* router,
 /**
  * Fills buf with a string representation of the arp cache.
  *
- * @param buf  buffer to place the string in
- * @param len  length of the buffer
- *
- * @return number of bytes written to create the string, or 0 if there was no
- *         enough space in buf to create the string
  */
-int arp_cache_to_string( arp_cache_t* cache, char* buf, int len );
+void arp_cache_to_string();
