@@ -14,6 +14,7 @@
 #include "../sr_icmp_types_send.h"
 #include "../sr_interface.h"
 #include "../sr_integration.h"
+#include "../sr_rtable.h"
 
 /* temporary */
 #include "cli_stubs.h"
@@ -231,7 +232,8 @@ void cli_show_ip_intf() {
 }
 
 void cli_show_ip_route() {
-    cli_send_str( "not yet implemented: show routing table of SR\n" );
+    cli_send_str( "\nShowing routing table:\n" );
+    rrtable_to_string();
 }
 
 void cli_show_opt() {

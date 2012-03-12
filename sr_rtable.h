@@ -75,7 +75,7 @@ bool rrtable_route_remove( rtable_t *rtable,
 void rrtable_purge_all( rtable_t* rtable );
 
 /** Puts a human-readable string representation of the routing table in buf */
-int rrtable_to_string( rtable_t* rtable, char* buf, int len );
+void rrtable_to_string();
 
 /** Returns sizeof(rtable_t), to allow dynamic allocation of rtable_t memory from within sr.o */
 unsigned int sizeof_rtable(void);

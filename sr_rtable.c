@@ -5,6 +5,8 @@
 #include "sr_rtable.h"
 #include "cli/helper.h"
 #include "sr_router.h"
+#include "cli/cli.h"
+#include "sr_integration.h"
 
 /**
  * Initialize the routing table
@@ -122,8 +124,7 @@ bool rrtable_route_remove( rtable_t *rtable, addr_ip_t dest, addr_ip_t mask ) {
  */
 void rrtable_purge_all( rtable_t* rtable ) {
    printf(" ** rrtable_purge_all(..) called \n");
-   int ret = 0;
-     // lock table
+   // lock table
    pthread_mutex_lock(&rtable->lock_rtable);
    // remove route from table
    rtable->rtable_list = llist_delete_no_count(rtable->rtable_list);
@@ -132,19 +133,35 @@ void rrtable_purge_all( rtable_t* rtable ) {
 }  
 
 /**
- * Fills a buffer with a string representation of the routing table.  Note that
- * STR_RTABLE_MAX_LEN is #defined in sr_rtable.h and is the maximum length of
- * buffer (including zero-terminator) that this will use.
- * 
- * @param rtable  The routing table to print
- * @param buf  The buffer to write the string to
- * @param len  The length of the buffer
- * 
- * @return  The number of bytes written to buf, or 0 if buf is not long enough.
+ * Fills a buffer with a string representation of the routing table
+ *
  */
-int rrtable_to_string( rtable_t* rtable, char* buf, int len ) {
-   printf(" ** rrtable_to_string(..) called \n");
-   return 0;
+void rrtable_to_string() {
+   char *str;
+   asprintf(&str, "Type, Dst IP, Next Hop IP, Subnet Mask, Interface\n");
+   cli_send_str(str);
+   free(str);
+   node* head;
+   route_t* entry;
+   // get instance of router 
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   pthread_mutex_lock(&router->rtable->lock_rtable);
+   head = router->rtable->rtable_list;
+   while(head != NULL) {
+      entry = (route_t*) head->data;
+      asprintf(&str, "%c, %s, ", entry->type, quick_ip_to_string(entry->destination));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s ", quick_ip_to_string(entry->next_hop));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, " %s, %s\n", quick_ip_to_string(entry->subnet_mask), entry->intf.name);
+      cli_send_str(str);
+      free(str);
+      head = head->next;
+   }
+   pthread_mutex_unlock(&router->rtable->lock_rtable);
 }
 
 
