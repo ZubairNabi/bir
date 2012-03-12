@@ -9,11 +9,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void icmp_type_dst_unreach_send(uint8_t* code, byte* packet, uint8_t* packet_len, struct ip* ip_header) {
+void icmp_type_dst_unreach_send(uint8_t* code, byte* packet, uint16_t* packet_len, struct ip* ip_header) {
    printf(" ** icmp_type_dst_unreach_send(..) called \n");
    uint8_t type = ICMP_TYPE_DST_UNREACH;
    uint32_t rest = 0;
-   uint8_t data_len = ip_header->ip_hl * 4 + 8;
+   uint16_t data_len = ip_header->ip_hl * 4 + 8;
    byte *data = (byte*) malloc_or_die(data_len);
    // generate original ip header (htons!)
    struct ip ip_header_orig = *ip_header;
@@ -52,7 +52,7 @@ void icmp_type_echo_request_send(sr_router* router, struct in_addr dst, uint16_t
    memcpy(&rest, &id, 2);
    memcpy(&rest + 2, &seq, 2);
    uint32_t data_ = 0;
-   uint8_t data_len_ = sizeof(uint32_t);
+   uint16_t data_len_ = sizeof(uint32_t);
    byte* data = (byte*) malloc_or_die(data_len_);
    memcpy(data, &data_, data_len_);
    // set ping info
@@ -61,11 +61,11 @@ void icmp_type_echo_request_send(sr_router* router, struct in_addr dst, uint16_t
    make_icmp_send_packet(&type, &code, &rest, data, &data_len_, ip_header);
 }
 
-void icmp_type_ttl_send(uint8_t* code, byte* packet, uint8_t* packet_len, struct ip* ip_header) {
+void icmp_type_ttl_send(uint8_t* code, byte* packet, uint16_t* packet_len, struct ip* ip_header) {
    printf(" ** icmp_type_ttl_send(..) called \n");
    uint8_t type = ICMP_TYPE_TTL;
    uint32_t rest = 0;
-   uint8_t data_len = ip_header->ip_hl * 4 + 8;
+   uint16_t data_len = ip_header->ip_hl * 4 + 8;
    // generate original ip header (htons!)
    struct ip ip_header_orig = *ip_header;
    ip_header_orig.ip_len = htons(ip_header_orig.ip_len);
@@ -80,10 +80,10 @@ void icmp_type_ttl_send(uint8_t* code, byte* packet, uint8_t* packet_len, struct
    make_icmp_send_packet(&type, code, &rest, data, &data_len, ip_header); 
 }
 
-void icmp_type_traceroute_send(uint32_t* rest, byte* packet, uint8_t* packet_len, struct ip* ip_header) {
+void icmp_type_traceroute_send(uint32_t* rest, byte* packet, uint16_t* packet_len, struct ip* ip_header) {
    printf(" ** icmp_type_traceroute_send(..) called \n");
 }
 
-void icmp_type_bad_ip_send(uint8_t* code, uint32_t* rest, byte* packet, uint8_t* packet_len, struct ip* ip_header) {
+void icmp_type_bad_ip_send(uint8_t* code, uint32_t* rest, byte* packet, uint16_t* packet_len, struct ip* ip_header) {
    printf(" ** icmp_type_bad_ip_send(..) called \n");
 }

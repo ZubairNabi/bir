@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-void icmp_type_echo_reply_response(sr_router* router, uint32_t* rest, byte* packet, uint8_t* packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_echo_reply_response(sr_router* router, uint32_t* rest, byte* packet, uint16_t* packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_echo_reply_response(..) called \n");
    // check if reply from intended host
    if(router->ping_info.ip == ip_header->ip_src.s_addr) {
@@ -26,11 +26,11 @@ void icmp_type_echo_reply_response(sr_router* router, uint32_t* rest, byte* pack
    clear_ping_info(router);
 }
 
-void icmp_type_dst_unreach_response(uint8_t* code, byte* packet, uint8_t* packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_dst_unreach_response(uint8_t* code, byte* packet, uint16_t* packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_dst_unreach_response(..) called \n");
    uint8_t type = ICMP_TYPE_DST_UNREACH;
    uint32_t rest = 0;
-   uint8_t data_len = ip_header->ip_hl * 4 + 8;
+   uint16_t data_len = ip_header->ip_hl * 4 + 8;
    byte *data = (byte*) malloc_or_die(data_len);
    // generate original ip header (htons!)
    struct ip ip_header_orig = *ip_header;
@@ -45,19 +45,19 @@ void icmp_type_dst_unreach_response(uint8_t* code, byte* packet, uint8_t* packet
    make_icmp_response_packet(&type, code, &rest, data, &data_len, ip_header, intf);
 }
 
-void icmp_type_echo_request_response(uint32_t* rest, byte* data, uint8_t* data_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_echo_request_response(uint32_t* rest, byte* data, uint16_t* data_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_echo_request_response(..) called \n");
    uint8_t type = ICMP_TYPE_ECHO_REPLY;
    uint8_t code = ICMP_TYPE_CODE_ECHO_REPLY;
-   uint8_t data_len_ = *data_len;
+   uint16_t data_len_ = *data_len;
    make_icmp_response_packet(&type, &code, rest, data, &data_len_, ip_header, intf);
 }
 
-void icmp_type_ttl_response(uint8_t* code, byte* packet, uint8_t* packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_ttl_response(uint8_t* code, byte* packet, uint16_t* packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_ttl_response(..) called \n");
    uint8_t type = ICMP_TYPE_TTL;
    uint32_t rest = 0;
-   uint8_t data_len = ip_header->ip_hl * 4 + 8;
+   uint16_t data_len = ip_header->ip_hl * 4 + 8;
    // generate original ip header (htons!)
    struct ip ip_header_orig = *ip_header;
    ip_header_orig.ip_len = htons(ip_header_orig.ip_len);
@@ -72,10 +72,10 @@ void icmp_type_ttl_response(uint8_t* code, byte* packet, uint8_t* packet_len, st
    make_icmp_response_packet(&type, code, &rest, data, &data_len, ip_header, intf); 
 }
 
-void icmp_type_traceroute_response(uint32_t* rest, byte* packet, uint8_t* packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_traceroute_response(uint32_t* rest, byte* packet, uint16_t* packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_traceroute_response(..) called \n");
 }
 
-void icmp_type_bad_ip_response(uint8_t* code, uint32_t* rest, byte* packet, uint8_t* packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_bad_ip_response(uint8_t* code, uint32_t* rest, byte* packet, uint16_t* packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_bad_ip_response(..) called \n");
 }

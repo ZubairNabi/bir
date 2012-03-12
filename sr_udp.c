@@ -8,7 +8,7 @@ bool check_udp_header(udp_header_t* header, byte* raw_packet, struct ip* ip_head
    // generate pseudo ip header
    pseudo_ip_header_t* pseudo_header = make_pseudo_ip_header(ip_header, header->len);
    // generate raw packet for checksum
-   uint8_t len_raw_packet = sizeof(pseudo_ip_header_t) + header->len;
+   uint16_t len_raw_packet = sizeof(pseudo_ip_header_t) + header->len;
    udp_header_t* sum_header = (udp_header_t*) malloc_or_die(sizeof(udp_header_t));
    memcpy(sum_header, header, UDP_HEADER_LEN);
    // make the checksum and convert to network order for checksum

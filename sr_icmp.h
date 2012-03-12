@@ -40,17 +40,17 @@ typedef struct icmp_header_t {
 icmp_header_t* make_icmp_header(byte* icmp_packet);
 
 void icmp_handle_packet(sr_router* router, byte* icmp_packet,
-                        uint8_t packet_len, struct ip* ip_header, interface_t* intf); 
+                        uint16_t packet_len, struct ip* ip_header, interface_t* intf); 
 
 void display_icmp_header(icmp_header_t* header);
 
-bool check_icmp_header(icmp_header_t* header, byte* raw_packet, uint8_t len);
+bool check_icmp_header(icmp_header_t* header, byte* raw_packet, uint16_t len);
 
-void check_packet_type(sr_router* router, icmp_header_t* header, byte* payload, uint8_t payload_len, struct ip* ip_header, interface_t* intf);
+void check_packet_type(sr_router* router, icmp_header_t* header, byte* payload, uint16_t payload_len, struct ip* ip_header, interface_t* intf);
 
-void make_icmp_response_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint8_t* data_len, struct ip* ip_header, interface_t* intf);
+void make_icmp_response_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint16_t* data_len, struct ip* ip_header, interface_t* intf);
 
-uint16_t generate_checksum(byte* packet, uint8_t packet_len);
+uint16_t generate_checksum(byte* packet, uint16_t packet_len);
 
-void make_icmp_send_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint8_t* data_len, struct ip* ip_header);
+void make_icmp_send_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint16_t* data_len, struct ip* ip_header);
 

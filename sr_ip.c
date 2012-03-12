@@ -74,7 +74,7 @@ void ip_handle_packet( sr_router* router,
       printf(" ** ip_handle_packet(..) packet contents \n");
       display_ip_header(ip_header);
       // get payload
-      uint8_t payload_len = ip_header->ip_len - (ip_header->ip_hl * 4);
+      uint16_t payload_len = ip_header->ip_len - (ip_header->ip_hl * 4);
       printf(" ** ip_handle_packet(..) Payload size %u bytes \n", payload_len);
       byte* payload = (byte*) malloc_or_die(payload_len);
       memcpy(payload, ip_packet + (ip_header->ip_hl * 4), payload_len);
@@ -158,7 +158,7 @@ bool check_packet_destination(struct in_addr ip_dst, sr_router* router) {
    return FALSE;
 }
 
-void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payload, uint8_t payload_len, interface_t* intf, byte* ip_packet) {
+void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payload, uint16_t payload_len, interface_t* intf, byte* ip_packet) {
    if(ip_header->ip_p == IP_PROTOCOL_ICMP) {
       //icmp
       printf(" ** ip_handle_packet(..) protocol: ICMP \n");
@@ -173,7 +173,7 @@ void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payloa
       //udp_handle_packet(payload, ip_header, intf);
       printf(" ** ip_handle_packet(..) protocol: Error! Not supported. Dropping and sending ICMP response: port unreachable \n");
       uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_PORT;
-      icmp_type_dst_unreach_send(&code, ip_packet, (uint8_t*)&ip_header->ip_len, ip_header);
+      icmp_type_dst_unreach_send(&code, ip_packet, (uint16_t*)&ip_header->ip_len, ip_header);
 
    } else if(ip_header->ip_p == IP_PROTOCOL_OSPF) {
       //ospf
@@ -187,11 +187,11 @@ void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payloa
       //otherwise
       printf(" ** ip_handle_packet(..) protocol: Error! Not supported. Dropping and sending ICMP response \n");
       uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_PROTOCOL;
-      icmp_type_dst_unreach_send(&code, ip_packet, (uint8_t*)&ip_header->ip_len, ip_header);
+      icmp_type_dst_unreach_send(&code, ip_packet, (uint16_t*)&ip_header->ip_len, ip_header);
    }
 }
 
-void make_ip_packet_reply(byte* payload, uint8_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol, interface_t* intf) {
+void make_ip_packet_reply(byte* payload, uint16_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol, interface_t* intf) {
    printf(" ** make_ip_packet_reply(..) called \n");
    struct ip* ip_header = (struct ip*) malloc_or_die(sizeof(struct ip));
    ip_header->ip_v = IP_4_VERSION;
@@ -218,7 +218,7 @@ void make_ip_packet_reply(byte* payload, uint8_t payload_len, struct in_addr src
    ip_look_up_reply(ip_packet, ip_header, intf);
 }
 
-uint16_t generate_checksum_ip_header(struct ip* header, uint8_t len) {  
+uint16_t generate_checksum_ip_header(struct ip* header, uint16_t len) {  
    byte* raw_header = (byte*) malloc_or_die(len);
    memcpy(raw_header, header, len);
    return htons(inet_chksum((void*) raw_header, len));
@@ -243,7 +243,7 @@ void ip_look_up(byte* ip_packet, struct ip* ip_header) {
    if(ip_header->ip_ttl == 1) {
       printf(" ** ip_lookup(..) ttl expired, sending ICMP ttl error message \n");
       uint8_t code = ICMP_TYPE_CODE_TTL_TRANSIT;
-      uint8_t len = ntohs(ip_header->ip_len);
+      uint16_t len = ntohs(ip_header->ip_len);
       icmp_type_ttl_send(&code, ip_packet, &len, ip_header);
    } else {
       printf(" ** ip_lookup(..) decrementing ttl \n");
@@ -256,7 +256,7 @@ void ip_look_up(byte* ip_packet, struct ip* ip_header) {
       ip_header_ttl->ip_sum = 0;
       ip_header_ttl->ip_sum = htons(htons(inet_chksum((void*)ip_header_ttl, ip_header_ttl->ip_hl * 4)));
       // get payload
-      uint8_t payload_len = ntohs(ip_header_ttl->ip_len) - (ip_header_ttl->ip_hl * 4);
+      uint16_t payload_len = ntohs(ip_header_ttl->ip_len) - (ip_header_ttl->ip_hl * 4);
       printf(" ** ip_lookup(..) Payload size %u bytes \n", payload_len);
       memcpy(ip_packet, ip_header_ttl, ip_header_ttl->ip_hl * 4);
       // make new ip packet
@@ -293,7 +293,7 @@ bool check_if_local_subnet(addr_ip_t dst, addr_ip_t src, addr_ip_t subnet_mask) 
    return FALSE;
 }
 
-void make_ip_packet(byte* payload, uint8_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol) {
+void make_ip_packet(byte* payload, uint16_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol) {
    printf(" ** make_ip_packet(..) called \n");
    struct ip* ip_header = (struct ip*) malloc_or_die(sizeof(struct ip));
    ip_header->ip_v = IP_4_VERSION;
@@ -344,7 +344,7 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
      ip_header->ip_off = ntohs((ip_header->ip_off));
      ip_header->ip_id = ntohs((ip_header->ip_id));
      ip_header->ip_sum = ntohs((ip_header->ip_sum));
-     uint8_t packet_len = ip_header->ip_len;
+     uint16_t packet_len = ip_header->ip_len;
      icmp_type_dst_unreach_send(&code, ip_packet, &packet_len, ip_header);
    } else {
       // check if ttl expired
@@ -356,7 +356,7 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
          ip_header->ip_id = ntohs((ip_header->ip_id));
          ip_header->ip_sum = ntohs((ip_header->ip_sum));
          uint8_t code = ICMP_TYPE_CODE_TTL_TRANSIT;
-         uint8_t len = ip_header->ip_len;
+         uint16_t len = ip_header->ip_len;
          icmp_type_ttl_send(&code, ip_packet, &len, ip_header);
       } else {
          printf(" ** ip_lookup_reply(..) decrementing ttl \n");
@@ -369,7 +369,7 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
          ip_header_ttl->ip_sum = 0;
          ip_header_ttl->ip_sum = htons(htons(inet_chksum((void*)ip_header_ttl, ip_header_ttl->ip_hl * 4)));
          // get payload
-         uint8_t payload_len = ntohs(ip_header_ttl->ip_len) - (ip_header_ttl->ip_hl * 4);
+         uint16_t payload_len = ntohs(ip_header_ttl->ip_len) - (ip_header_ttl->ip_hl * 4);
          printf(" ** ip_lookup_reply(..) Payload size %u bytes \n", payload_len);
          memcpy(ip_packet, ip_header_ttl, ip_header_ttl->ip_hl * 4);
          // make new ip packet

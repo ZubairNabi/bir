@@ -34,11 +34,11 @@ void display_ip_header(struct ip*);
 
 bool check_packet_destination(struct in_addr ip_dst, sr_router *router);
 
-void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payload, uint8_t payload_len, interface_t* intf, byte* ip_packet);
+void check_packet_protocol(sr_router* router, struct ip* ip_header, byte* payload, uint16_t payload_len, interface_t* intf, byte* ip_packet);
 
-void make_ip_packet_reply(byte* payload, uint8_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol, interface_t* intf);
+void make_ip_packet_reply(byte* payload, uint16_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol, interface_t* intf);
 
-uint16_t generate_checksum_ip_header(struct ip* header, uint8_t len);
+uint16_t generate_checksum_ip_header(struct ip* header, uint16_t len);
 
 void ip_look_up(byte* ip_packet, struct ip* ip_header);
 
@@ -46,7 +46,7 @@ void send_ip_packet(byte* ip_packet, struct ip* ip_header, route_info_t route_in
 
 bool check_if_local_subnet(addr_ip_t dst, addr_ip_t src, addr_ip_t subnet_mask);
 
-void make_ip_packet(byte* payload, uint8_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol);
+void make_ip_packet(byte* payload, uint16_t payload_len, struct in_addr src, struct in_addr dst, uint8_t protocol);
 
 void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf);
 

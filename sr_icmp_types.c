@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-void icmp_type_echo_reply(sr_router* router, uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_echo_reply(sr_router* router, uint8_t code, uint32_t rest, byte* packet, uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
     printf(" ** icmp_type_echo_reply(..) called \n");
    if(code != ICMP_TYPE_CODE_ECHO_REPLY)
       printf(" ** icmp_type_echo_reply(..) code incorrect! \n");
@@ -13,7 +13,7 @@ void icmp_type_echo_reply(sr_router* router, uint8_t code, uint32_t rest, byte* 
    }
 }
 
-void icmp_type_dst_unreach(uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_dst_unreach(uint8_t code, uint32_t rest, byte* packet, uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_dst_unreach(..) called \n");
    switch(code) {
       case ICMP_TYPE_CODE_DST_UNREACH_NETWORK:
@@ -46,7 +46,7 @@ void icmp_type_dst_unreach(uint8_t code, uint32_t rest, byte* packet, uint8_t pa
    }
 }
 
-void icmp_type_echo_request(uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_echo_request(uint8_t code, uint32_t rest, byte* packet, uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_echo_request(..) called \n");
    if(code != ICMP_TYPE_CODE_ECHO_REQUEST)
       printf(" ** icmp_type_echo_request(..) code incorrect! \n");
@@ -66,7 +66,7 @@ void icmp_type_echo_request(uint8_t code, uint32_t rest, byte* packet, uint8_t p
    }
 }
 
-void icmp_type_ttl(uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_ttl(uint8_t code, uint32_t rest, byte* packet, uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_ttl(..) called \n");
    switch(code) {
       case ICMP_TYPE_CODE_TTL_TRANSIT:
@@ -81,7 +81,7 @@ void icmp_type_ttl(uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len
    }
 }
 
-void icmp_type_traceroute(uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_traceroute(uint8_t code, uint32_t rest, byte* packet, uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_traceroute(..) called \n");
    if(code != ICMP_TYPE_CODE_TRACEROUTE)
       printf(" ** icmp_type_traceroute(..) code incorrect! \n");
@@ -89,7 +89,7 @@ void icmp_type_traceroute(uint8_t code, uint32_t rest, byte* packet, uint8_t pac
    }
 }
 
-void icmp_type_bad_ip(uint8_t code, uint32_t rest, byte* packet, uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+void icmp_type_bad_ip(uint8_t code, uint32_t rest, byte* packet, uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** icmp_type_bad_ip(..) called \n");
    switch(code) {
       case ICMP_TYPE_CODE_BAD_IP_POINTER:

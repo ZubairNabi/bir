@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-void pwospf_hello_type(struct ip* ip_header, byte* payload, uint8_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf) {
+void pwospf_hello_type(struct ip* ip_header, byte* payload, uint16_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf) {
    printf(" ** pwospf_hello_type(..) called \n");
    printf(" ** pwospf_hello_type(..) packet with length: %u \n", payload_len);
    // make hello packet
@@ -56,7 +56,7 @@ void pwospf_hello_type(struct ip* ip_header, byte* payload, uint8_t payload_len,
    }
 }
 
-void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint8_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf) {
+void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf) {
    printf(" ** pwospf_lsu_type(..) called \n");
    printf(" ** pwospf_lsu_type(..) packet with length: %u \n", payload_len);
    struct sr_instance* sr_inst = get_sr();

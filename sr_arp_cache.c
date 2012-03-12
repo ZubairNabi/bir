@@ -375,7 +375,7 @@ int arp_cache_handle_partial_frame( struct sr_router* router,
             uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_HOST;
             // get original ip header
             struct ip* ip_header = make_ip_header(payload);
-            uint8_t packet_len = ip_header->ip_len;
+            uint16_t packet_len = ip_header->ip_len;
             icmp_type_dst_unreach_send(&code, payload, &packet_len, ip_header);
 
             } else {

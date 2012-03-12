@@ -21,7 +21,7 @@ icmp_header_t* make_icmp_header(byte* icmp_packet) {
 }
 
 void icmp_handle_packet(sr_router* router, byte* icmp_packet,
-                        uint8_t packet_len, struct ip* ip_header, interface_t* intf) {
+                        uint16_t packet_len, struct ip* ip_header, interface_t* intf) {
     printf(" ** icmp_handle_packet(..) called \n");
     // construct icmp header
     printf(" ** icmp_handle_packet(..) constructing icmp header \n");
@@ -37,7 +37,7 @@ void icmp_handle_packet(sr_router* router, byte* icmp_packet,
        printf(" ** icmp_handle_packet(..) displaying icmp header \n");
        display_icmp_header(icmp_header);
        // get payload
-       uint8_t payload_len = packet_len - ICMP_HEADER_LEN;
+       uint16_t payload_len = packet_len - ICMP_HEADER_LEN;
        printf(" ** icmp_handle_packet(..) Payload size %u bytes \n", payload_len);
        byte* payload = (byte*) malloc_or_die(payload_len);
        memcpy(payload, icmp_packet + ICMP_HEADER_LEN, payload_len);
@@ -56,7 +56,7 @@ void display_icmp_header(icmp_header_t* header) {
     }
 }
 
-bool check_icmp_header(icmp_header_t* header, byte* raw_packet, uint8_t len) {
+bool check_icmp_header(icmp_header_t* header, byte* raw_packet, uint16_t len) {
     // create raw packet with checksum zero
     byte* sum_packet = (byte*) malloc_or_die(len);
     memcpy(sum_packet, raw_packet, len);
@@ -67,7 +67,7 @@ bool check_icmp_header(icmp_header_t* header, byte* raw_packet, uint8_t len) {
     return TRUE;
 }
 
-void check_packet_type(sr_router* router, icmp_header_t* header, byte* payload, uint8_t payload_len, struct ip* ip_header, interface_t* intf) {
+void check_packet_type(sr_router* router, icmp_header_t* header, byte* payload, uint16_t payload_len, struct ip* ip_header, interface_t* intf) {
    if(header->type == ICMP_TYPE_ECHO_REPLY) {
       //echo reply
       printf(" ** icmp_handle_packet(..) type: echo reply \n");
@@ -95,7 +95,7 @@ void check_packet_type(sr_router* router, icmp_header_t* header, byte* payload, 
    }
 }
 
-void make_icmp_response_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint8_t* data_len, struct ip* ip_header, interface_t* intf) {
+void make_icmp_response_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint16_t* data_len, struct ip* ip_header, interface_t* intf) {
    printf(" ** make_icmp_response_packet(..) called \n");
    // make raw icmp packet
    byte* icmp_packet = (byte*) malloc_or_die(ICMP_HEADER_LEN + *data_len);
@@ -113,11 +113,11 @@ void make_icmp_response_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byt
    make_ip_packet_reply(icmp_packet, ICMP_HEADER_LEN + *data_len, ip_header->ip_src, ip_header->ip_dst, IP_PROTOCOL_ICMP, intf);
 }
 
-uint16_t generate_checksum(byte* packet, uint8_t packet_len) {
+uint16_t generate_checksum(byte* packet, uint16_t packet_len) {
    return htons(inet_chksum((void*) packet, packet_len));   
 }
 
-void make_icmp_send_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint8_t* data_len, struct ip* ip_header) {
+void make_icmp_send_packet(uint8_t* type, uint8_t* code, uint32_t* rest, byte* data, uint16_t* data_len, struct ip* ip_header) {
    printf(" ** make_icmp_send_packet(..) called \n");
    // make raw icmp packet
    byte* icmp_packet = (byte*) malloc_or_die(ICMP_HEADER_LEN + *data_len);

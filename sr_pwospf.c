@@ -28,7 +28,7 @@ pwospf_header_t* make_pwospf_header(byte* packet) {
 }
 
 void pwospf_handle_packet(byte* pwospf_packet,
-                          uint8_t packet_len,
+                          uint16_t packet_len,
                           struct ip* ip_header, 
                           interface_t* intf,
                           sr_router* router) {
@@ -43,7 +43,7 @@ void pwospf_handle_packet(byte* pwospf_packet,
       printf(" ** pwospf_handle_packet(..) header contents: \n");
       display_pwospf_header(pwospf_header); 
       // get payload
-      uint8_t payload_len = pwospf_header->len - sizeof(pwospf_header_t);
+      uint16_t payload_len = pwospf_header->len - sizeof(pwospf_header_t);
       byte* payload = (byte*) malloc_or_die(payload_len);
       memcpy(payload, pwospf_packet + sizeof(pwospf_header_t), payload_len);
       // check type
@@ -60,7 +60,7 @@ void display_pwospf_header(pwospf_header_t* header) {
    printf(" ** version: %u, type: %u,  len: %u, router id: %lu, area id: %lu, checksum: %u,  au type: %u, authentication: %lu\n", header->version, header->type, header->len, header->router_id, header->area_id, header->checksum, header->au_type, header->authentication);
 }
 
-bool check_pwospf_header(pwospf_header_t* header, byte* pwospf_packet, uint8_t packet_len, sr_router* router) {
+bool check_pwospf_header(pwospf_header_t* header, byte* pwospf_packet, uint16_t packet_len, sr_router* router) {
    byte* sum_packet = (byte*) malloc_or_die(packet_len);
    memcpy(sum_packet, pwospf_packet, packet_len);
    uint16_t sum_zero = 0;
@@ -82,7 +82,7 @@ bool check_pwospf_header(pwospf_header_t* header, byte* pwospf_packet, uint8_t p
    return TRUE;
 }
 
-void pwospf_check_packet_type(struct ip* ip_header, byte* payload, uint8_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf) {
+void pwospf_check_packet_type(struct ip* ip_header, byte* payload, uint16_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf) {
    printf(" ** pwospf_check_packet_type(..) called \n");
    uint8_t type_lsu = PWOSPF_TYPE_LSU;
    uint8_t type_hello = PWOSPF_TYPE_HELLO;
@@ -146,7 +146,7 @@ void send_hello_packet(void* intf_input) {
       ip_header->ip_sum = 0;
       ip_header->ip_sum = htons(htons(inet_chksum((void*)ip_header, IP_HEADER_MIN_LEN)));
       // generate ip packet
-      uint8_t packet_len = ntohs(ip_header->ip_len);
+      uint16_t packet_len = ntohs(ip_header->ip_len);
       byte* ip_packet = (byte*) malloc_or_die(packet_len);
       memcpy(ip_packet, ip_header, IP_HEADER_MIN_LEN);
       memcpy(ip_packet + IP_HEADER_MIN_LEN, pwospf_packet, sizeof(pwospf_hello_packet_t) + sizeof(pwospf_header_t));

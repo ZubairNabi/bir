@@ -50,16 +50,16 @@ typedef struct pwospf_ls_advert_t {
 pwospf_header_t* make_pwospf_header(byte* packet);
 
 void pwospf_handle_packet(byte* pwospf_packet,
-                          uint8_t packet_len,
+                          uint16_t packet_len,
                           struct ip* ip_header,
                           interface_t* intf,
                           sr_router* router);
 
 void display_pwospf_header(pwospf_header_t* header);
 
-bool check_pwospf_header(pwospf_header_t* header, byte* pwospf_packet, uint8_t packet_len, sr_router* router);
+bool check_pwospf_header(pwospf_header_t* header, byte* pwospf_packet, uint16_t packet_len, sr_router* router);
 
-void pwospf_check_packet_type(struct ip* ip_header, byte* payload, uint8_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf);
+void pwospf_check_packet_type(struct ip* ip_header, byte* payload, uint16_t payload_len, pwospf_header_t* pwospf_header, interface_t* intf);
 
 void send_hello_packet(void* interface_input);
 
