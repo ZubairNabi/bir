@@ -130,25 +130,33 @@ void rtable_route_add( struct sr_instance* sr,
                        uint32_t dest, uint32_t gw, uint32_t mask,
                        void* intf,
                        int is_static_route ) {
-    fprintf( stderr, "not yet implemented: rtable_route_add\n" );
+   struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
+   char type = 'd';
+   if(is_static_route)
+      type = 's';
+   rrtable_route_add(subsystem->rtable,
+                       dest, gw, mask,
+                       intf, type );
 }
 
 /** Removes the specified route from the routing table, if present. */
 int rtable_route_remove( struct sr_instance* sr,
                          uint32_t dest, uint32_t mask,
                          int is_static ) {
-    fprintf( stderr, "not yet implemented: rtable_route_remove\n" );
-    return 0 /* fail */;
+    struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
+    return rrtable_route_remove(subsystem->rtable, dest, mask);
 }
 
 /** Remove all routes from the router. */
 void rtable_purge_all( struct sr_instance* sr ) {
-    fprintf( stderr, "not yet implemented: rtable_purge_all\n" );
+    struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
+    rrtable_purge_all(subsystem->rtable);
 }
 
 /** Remove all routes of a specific type from the router. */
 void rtable_purge( struct sr_instance* sr, int is_static ) {
-    fprintf( stderr, "not yet implemented: rtable_purge\n" );
+    struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
+    rrtable_purge_all(subsystem->rtable);
 }
 
 #endif /* CLI_STUBS_H */
