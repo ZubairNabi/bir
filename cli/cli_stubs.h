@@ -110,7 +110,10 @@ int router_is_interface_enabled( struct sr_instance* sr, interface_t* intf ) {
  * Returns whether OSPF is enabled (0 if disabled, otherwise it is enabled).
  */
 int router_is_ospf_enabled( struct sr_instance* sr ) {
-    fprintf( stderr, "not yet implemented: router_is_ospf_enabled\n" );
+    struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
+    bool ret = check_ospf_status(subsystem);
+    if(ret == TRUE)
+       return 1;
     return 0;
 }
 
@@ -118,7 +121,8 @@ int router_is_ospf_enabled( struct sr_instance* sr ) {
  * Sets whether OSPF is enabled.
  */
 void router_set_ospf_enabled( struct sr_instance* sr, int enabled ) {
-    fprintf( stderr, "not yet implemented: router_set_ospf_enabled\n" );
+   struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
+   toggle_ospf_status(subsystem, enabled);
 }
 
 /** Adds a route to the appropriate routing table. */

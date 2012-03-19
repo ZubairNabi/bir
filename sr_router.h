@@ -56,3 +56,5 @@ void set_ls_info_id(sr_router* router, uint32_t area_id, uint16_t lsuint);
 void set_ping_info(sr_router* router, uint32_t rest, uint32_t ip, int fd);
 
 void clear_ping_info(sr_router* router);
+
+bool check_ospf_status(sr_router* router);

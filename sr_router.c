@@ -55,3 +55,7 @@ void clear_ping_info(sr_router* router) {
    router->ping_info.ip = 0;
    router->ping_info.fd = 0;
 }
+
+bool check_ospf_status(sr_router* router) {
+   return router->ospf_status;
+}
