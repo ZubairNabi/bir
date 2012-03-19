@@ -49,12 +49,15 @@ interface_t make_interface(char* name, addr_mac_t mac, addr_ip_t ip, bool enable
 }
 
 interface_t* get_interface_name(struct sr_router* router, const char* name) {
-   printf(" ** get_interface_name(..) called \n");
+   printf(" ** get_interface_name(..) called for name: %s\n", name);
    int i = 0;
    for(i = 0; i < router->num_interfaces ; i++) {
-      if(strcmp(router->interface[i].name, name) == 0)
+      if(strcmp(router->interface[i].name, name) == 0) {
+         printf(" ** get_interface_name(..) found name: %s\n", name);
          return &router->interface[i];
+      }
    }
+   printf(" ** get_interface_name(..) not found name: %s\n", name);
    return NULL;
 }
 
@@ -85,6 +88,8 @@ void toggle_interface(interface_t* intf, int enabled) {
 }
 
 bool check_interface(interface_t* intf) {
+   printf(" ** check_interface(..) called \n"); 
+   printf("************* %u\n", intf->enabled);
    return intf->enabled;
 }
 

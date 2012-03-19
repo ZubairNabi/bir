@@ -379,7 +379,7 @@ void cli_manip_ip_intf_set( gross_intf_t* data ) {
         /* not yet implemented: let everyone else know the routes we offer have changed */
     }
     else
-        cli_send_strs( 2, data->intf_name, " is not a valid interface\n" );
+        cli_send_strs( 2, data->intf_name, " is not a valid interface!\n" );
 }
 
 void cli_manip_ip_intf_set_enabled( const char* intf_name, int enabled ) {
@@ -399,7 +399,7 @@ void cli_manip_ip_intf_set_enabled( const char* intf_name, int enabled ) {
 
     case -1:
     default:
-        cli_send_strs( 2, intf_name, " is not a valid interface\n" );
+        cli_send_strs( 2, intf_name, " is not a valid interface!!\n" );
     }
 }
 

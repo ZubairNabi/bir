@@ -66,10 +66,22 @@ int router_interface_set_enabled( struct sr_instance* sr, const char* name, int 
    if (intf == NULL)
       return -1;
    bool status = check_interface(intf);
-   if(status == TRUE)
-      return 1;
-   toggle_interface(intf, enabled);
-   return 0;
+   if(status == TRUE) {
+      if(enabled == 1)
+         return 1;
+      else {
+         toggle_interface(intf, enabled);
+         return 0;
+      }
+   }
+   else {
+      if(enabled == 0)
+          return 1;
+      else {
+         toggle_interface(intf, enabled);
+         return 0;
+      }
+   }
 }
 
 /**
@@ -90,10 +102,13 @@ interface_t* router_lookup_interface_via_ip( struct sr_instance* sr,
  * @return interface, or NULL if the name does not match any interface
  *         (you'll want to change void* to whatever type you end up using)
  */
-interface_t* router_lookup_interface_via_name( struct sr_instance* sr,
+void* router_lookup_interface_via_name( struct sr_instance* sr,
                                         const char* name ) {
     struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
-    return get_interface_name(subsystem, name);
+    interface_t* intf = get_interface_name(subsystem, name);
+    if(intf == NULL)
+       return NULL;
+    return ((void*) intf);;
 }
 
 /**
