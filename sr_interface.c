@@ -9,6 +9,7 @@
 #include "sr_router.h"
 #include "sr_neighbor.h"
 #include "cli/cli.h"
+#include "sr_cpu_extension_nf2.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -32,6 +33,9 @@ interface_t set_interface(struct sr_vns_if* vns_intf) {
 void interface_init(struct sr_router* subsystem) {
    printf(" ** interface_init(..) called \n");
    subsystem->num_interfaces = 0;
+#ifdef _CPUMODE_
+   sr_cpu_init_interface_socket(subsystem);
+#endif
 }
 
 interface_t make_interface(char* name, addr_mac_t mac, addr_ip_t ip, bool enabled, addr_ip_t subnet_mask) {
