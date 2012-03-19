@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <netinet/ip.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <assert.h>
 
@@ -36,6 +37,9 @@
 #ifdef _CPUMODE_
 #include "sr_cpu_extension_nf2.h"
 #endif
+
+#include "nf2util.h"
+#include "nf2.h"
 
 struct sr_instance* get_sr(); 
 int sr_integ_low_level_output(struct sr_instance*,
@@ -65,6 +69,12 @@ void sr_integ_init(struct sr_instance* sr)
     rrtable_init(subsystem);
     //enable ospf by default
     toggle_ospf_status(subsystem, TRUE);
+    //flush hw registers
+//#ifdef _CPUMODE_
+    struct nf2device netfpga;
+    writeReg(&netfpga, CPCI_REG_CTRL, 0x00010100);
+    usleep(2000);
+//#endif
 } /* -- sr_integ_init -- */
 
 /*-----------------------------------------------------------------------------
