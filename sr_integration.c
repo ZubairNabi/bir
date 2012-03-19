@@ -63,6 +63,8 @@ void sr_integ_init(struct sr_instance* sr)
     arp_cache_init(subsystem);
     interface_init(subsystem);
     rrtable_init(subsystem);
+    //enable ospf by default
+    toggle_ospf_status(subsystem, TRUE);
 } /* -- sr_integ_init -- */
 
 /*-----------------------------------------------------------------------------

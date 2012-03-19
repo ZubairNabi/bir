@@ -171,7 +171,7 @@ void pwospf_init( sr_router* router ) {
       sys_thread_new(send_hello_packet, (void*) &router->interface[i]);
       sys_thread_new(remove_timed_out_neighbors, (void*) &router->interface[i]);
    }
-   sys_thread_new(send_lsu_packet, (void*) &router);
+   sys_thread_new(send_lsu_packet, (void*) router);
 }
 
 void remove_timed_out_neighbors(void* intf_input) {
@@ -218,10 +218,14 @@ void send_lsu_packet(void* intf_input) {
    struct timespec *timeout_rem =(struct timespec*) malloc_or_die(sizeof(struct timespec));
    timeout->tv_sec = (time_t) PWOSPF_LSU_INTERVAL;
    timeout->tv_nsec = 0;
+   sr_router* router = (sr_router*) intf_input;
    while(1) {
       // sleep for interval
       nanosleep(timeout, timeout_rem);
       printf(" ** send lsu packet thread awoken\n");
-      pwospf_send_lsu();
+      if(router->ospf_status == TRUE)
+         pwospf_send_lsu();
+      else
+         printf(" ** send lsu packet thread: ospf disabled\n");
    }
 }
