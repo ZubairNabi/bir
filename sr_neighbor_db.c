@@ -1,7 +1,10 @@
 #include "sr_neighbor_db.h"
 #include "cli/helper.h"
+#include "cli/cli.h"
+#include "sr_integration.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 void neighbor_db_init(sr_router* router) {
    printf(" ** neighbor_db_init(..) called \n");
@@ -208,5 +211,42 @@ void update_neighbor_vertex_t_timestamp(sr_router* router, router_entry_t src, r
    neighbor_vertex_t* vertex = create_neighbor_vertex_t(src, dst);
    pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
    router->neighbor_db->neighbor_db_list = llist_update_sorted_delete(router->neighbor_db->neighbor_db_list, predicate_vertex_neighbor_vertex_t, (void*) vertex);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+}
+
+void display_neighbor_vertices_str() {
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   node* head = router->neighbor_db->neighbor_db_list;
+   char *str;
+   asprintf(&str, "Timestamp, Src: subnet, mask, id, Dst: subnet, mask, id\n");
+   cli_send_str(str);
+   free(str);
+   while (head != NULL) {
+      neighbor_vertex_t* entry = (neighbor_vertex_t*) head->data;
+      asprintf(&str, "%ld.%06ld, ", entry->timestamp->tv_sec, entry->timestamp->tv_usec);
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s, ", quick_ip_to_string(entry->src.subnet));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s, ", quick_ip_to_string(entry->src.mask));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s, ", quick_ip_to_string(entry->src.router_id));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s, ", quick_ip_to_string(entry->dst.subnet));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s, ", quick_ip_to_string(entry->dst.mask));
+      cli_send_str(str);
+      free(str);
+      asprintf(&str, "%s\n", quick_ip_to_string(entry->dst.router_id));
+      cli_send_str(str);
+      free(str);
+      head = head->next;
+   }
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
 }

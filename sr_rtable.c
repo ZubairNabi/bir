@@ -7,6 +7,7 @@
 #include "sr_router.h"
 #include "cli/cli.h"
 #include "sr_integration.h"
+#include "reg_defines.h"
 
 /**
  * Initialize the routing table
@@ -184,3 +185,23 @@ route_t* make_route_t(char type, addr_ip_t dst, interface_t intf, addr_ip_t next
    route->subnet_mask = subnet_mask;
    return route;
 } 
+
+void rrtable_write_hw() {
+   printf(" ** rrtable_write_hw(..) called \n");
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   pthread_mutex_lock(&router->rtable->lock_rtable);
+   route_t* route = NULL;
+   node *head = router->rtable->rtable_list;
+   int i = 0;
+   while(head != NULL && i != ROUTER_OP_LUT_ROUTE_TABLE_DEPTH) {
+      route = (route_t*) head->data;
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, route->destination);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, route->subnet_mask);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, route->next_hop);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR, i);
+      head = head->next;
+      i++;
+   }
+   pthread_mutex_unlock(&router->rtable->lock_rtable);
+}
