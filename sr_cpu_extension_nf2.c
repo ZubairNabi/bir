@@ -32,7 +32,9 @@
 #include "sr_router.h"
 #include "sr_interface.h"
 #include "sr_integration.h"
-#include "cli/socket_helper.h"
+#include "sr_ethernet.h"
+#include "sr_dumper.h"
+#include "real_socket_helper.h"
 
 struct sr_ethernet_hdr
 {
@@ -165,8 +167,63 @@ int sr_cpu_input(struct sr_instance* sr)
      * Note: With a 0 result, the router will shut-down
      */
     printf(" ** sr_cpu_input(..) called\n");
-    return 1;
+#ifdef _CPUMODE_
+    byte buf[ETH_MAX_LEN];
+    unsigned int len;
+    sr_router* router;
+    interface_t* intf;
+    fd_set rdset, errset;
+    int ret, max_fd, i;
+    struct timeval timeout;
 
+    do {
+        FD_ZERO( &rdset );
+        FD_ZERO( &errset );
+
+        max_fd = -1;
+        router = sr->interface_subsystem;
+        for( i = 0; i<router->num_interfaces; i++ ) {
+            if( router->interface[i].enabled ) {
+                FD_SET( router->interface[i].hw_fd, &rdset );
+                FD_SET( router->interface[i].hw_fd, &errset );
+
+                if( router->interface[i].hw_fd > max_fd )
+                    max_fd = router->interface[i].hw_fd;
+            }
+        }
+
+        timeout.tv_sec  = 1;
+        timeout.tv_usec = 0;
+        ret = select( max_fd + 1, &rdset, NULL, &errset, &timeout );
+
+        for( i = 0; i<router->num_interfaces; i++ ) {
+            intf = &router->interface[i];
+            if( intf->enabled ) {
+                if( FD_ISSET( intf->hw_fd, &rdset ) ) {
+                    len = real_read_once( intf->hw_fd, buf, ETH_MAX_LEN );
+                    if( len <= 0 )
+                        printf( " ** sr_cpu_input(..) length error on interface %s",
+                                       intf->name );
+                    else {
+
+                        sr_integ_input( sr, buf, len, intf->name );
+                        sr_log_packet( sr, buf, len );
+
+                        return 1;
+                    }
+                }
+
+                if( FD_ISSET( intf->hw_fd, &errset ) ) {
+                    printf(" ** sr_cpu_input(..) error %s\n",
+                                   intf->name );
+                    return 0;
+                }
+            }
+        }
+    }
+    while( 1 );
+#endif
+    return 1;
 } /* -- sr_cpu_input -- */
 
 /*-----------------------------------------------------------------------------
