@@ -257,12 +257,10 @@ void cli_show_ospf() {
 }
 
 void cli_show_ospf_neighbors() {
-    cli_send_str( "OSPF Topology:\n" );
     display_all_interfaces_neighbors_str();
 }
 
 void cli_show_ospf_topo() {
-    cli_send_str( "not yet implemented: show PWOSPF topology of SR (e.g., for each router, show its ID, last pwospf seq #, and a list of all its links (e.g., router ID + subnet))\n" );
    display_neighbor_vertices_str();
 }
 
