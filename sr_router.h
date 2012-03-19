@@ -10,6 +10,7 @@
 #include "sr_arp_cache.h"
 #include "sr_interface.h"
 #include "sr_rtable.h"
+#include "nf2util.h"
 
 typedef struct neighbor_db_t {
    node* neighbor_db_list;
@@ -39,6 +40,8 @@ typedef struct sr_router {
    //meta data for ping
    ping_info_t ping_info;
    neighbor_db_t* neighbor_db;
+   // hw device
+   struct nf2device hw_device;
 } sr_router;
 
 void toggle_ospf_status(sr_router* router, bool status);
@@ -58,3 +61,5 @@ void set_ping_info(sr_router* router, uint32_t rest, uint32_t ip, int fd);
 void clear_ping_info(sr_router* router);
 
 bool check_ospf_status(sr_router* router);
+
+void hw_init(sr_router* router);

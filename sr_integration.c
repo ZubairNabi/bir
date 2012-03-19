@@ -71,8 +71,8 @@ void sr_integ_init(struct sr_instance* sr)
     toggle_ospf_status(subsystem, TRUE);
     //flush hw registers
 //#ifdef _CPUMODE_
-    struct nf2device netfpga;
-    writeReg(&netfpga, CPCI_REG_CTRL, 0x00010100);
+    hw_init(subsystem);
+    writeReg(&subsystem->hw_device, CPCI_REG_CTRL, 0x00010100);
     usleep(2000);
 //#endif
 } /* -- sr_integ_init -- */

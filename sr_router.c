@@ -1,4 +1,7 @@
 #include "sr_router.h"
+#include <stdlib.h>
+
+#define DEFAULT_IFACE   "nf2c0"
 
 void toggle_ospf_status(sr_router* router, bool status) {
    router->ospf_status = status;
@@ -58,4 +61,15 @@ void clear_ping_info(sr_router* router) {
 
 bool check_ospf_status(sr_router* router) {
    return router->ospf_status;
+}
+
+void hw_init(sr_router* router) {
+   printf(" ** hw_init(..) called\n");
+   router->hw_device.device_name = "DEFAULT_IFACE";
+    if(check_iface(&router->hw_device) == 0) {
+       openDescriptor(&router->hw_device);
+    } else {
+       exit(1);
+    }
+    
 }
