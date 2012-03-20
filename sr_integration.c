@@ -162,7 +162,7 @@ void sr_integ_add_interface(struct sr_instance* sr,
 {
     printf(" ** sr_integ_add_interface(..) called \n");
     struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
-    subsystem->interface[subsystem->num_interfaces] = set_interface(vns_if);
+    subsystem->interface[subsystem->num_interfaces] = set_interface(vns_if, subsystem->num_interfaces);
 #ifdef _CPUMODE_
     write_interface_hw(subsystem);
 #endif

@@ -44,7 +44,7 @@ typedef struct {
     uint16_t lsuint;
 } interface_t;
 
-interface_t set_interface(struct sr_vns_if* vns_intf);
+interface_t set_interface(struct sr_vns_if* vns_intf, int intf_num);
 
 interface_t make_interface(char* name, addr_mac_t mac, addr_ip_t ip, bool enabled, addr_ip_t subnet_mask);
 
@@ -67,5 +67,7 @@ bool check_interface(interface_t* intf);
 void display_all_interfaces_neighbors_str();
 
 void write_interface_hw(struct sr_router* router);
+
+uint32_t get_hw_port(int intf_num);
 
 #endif /* SR_INTERFACE_H */

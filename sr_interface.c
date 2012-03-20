@@ -16,7 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-interface_t set_interface(struct sr_vns_if* vns_intf) {
+interface_t set_interface(struct sr_vns_if* vns_intf, int intf_num) {
    printf(" ** set_interface(..) called \n");
    interface_t intf;
    strcpy(intf.name, vns_intf->name);
@@ -29,6 +29,7 @@ interface_t set_interface(struct sr_vns_if* vns_intf) {
    intf.helloint = PWOSPF_HELLO_INTERVAL;
 #ifdef _CPUMODE_
    pthread_mutex_init(&intf.hw_lock, NULL);
+   intf.hw_port = get_hw_port(intf_num);
 #endif
    printf(" ** set_interface(..) displaying interface object \n");
    display_interface(&intf);
@@ -246,4 +247,14 @@ void write_interface_hw(struct sr_router* subsystem) {
    }
    pthread_mutex_unlock(&subsystem->interface[subsystem->num_interfaces].hw_lock);
 #endif
+}
+
+uint32_t get_hw_port(int intf_num) {
+   if(intf_num == 0)
+      return 1;
+   else if(intf_num == 1)
+      return 4;
+   else if(intf_num == 2)
+      return 16;
+   return 64;
 }
