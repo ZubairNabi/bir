@@ -148,17 +148,6 @@ int sr_cpu_input(struct sr_instance* sr)
 {
     /* REQUIRES */
     assert(sr);
-
-    /*
-     * TODO: Read packet from the hardware and pass to sr_integ_input(..)
-     *       e.g.
-     *
-     *  sr_integ_input(sr,
-     *          packet,   * lent *
-     *          len,
-     *          "eth2" ); * lent *
-     */
-
     /*
      * Note: To log incoming packets, use sr_log_packet from sr_dumper.[c,h]
      */
@@ -169,59 +158,57 @@ int sr_cpu_input(struct sr_instance* sr)
     printf(" ** sr_cpu_input(..) called\n");
 #ifdef _CPUMODE_
     byte buf[ETH_MAX_LEN];
-    unsigned int len;
-    sr_router* router;
+    unsigned int len = 0;
+    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr);
     interface_t* intf;
     fd_set rdset, errset;
-    int ret, max_fd, i;
+    int ret = 0, max_fd = -1, i;
     struct timeval timeout;
-
-    do {
-        FD_ZERO( &rdset );
-        FD_ZERO( &errset );
-
+    while(1) {
+        // clear set
+        FD_ZERO(&rdset);
+        FD_ZERO(&errset);
         max_fd = -1;
-        router = sr->interface_subsystem;
-        for( i = 0; i<router->num_interfaces; i++ ) {
-            if( router->interface[i].enabled ) {
-                FD_SET( router->interface[i].hw_fd, &rdset );
-                FD_SET( router->interface[i].hw_fd, &errset );
-
-                if( router->interface[i].hw_fd > max_fd )
-                    max_fd = router->interface[i].hw_fd;
-            }
+        for(i = 0; i<router->num_interfaces; i++) {
+            // set fds for each interface, both read and error  
+            FD_SET(router->interface[i].hw_fd, &rdset);
+            FD_SET(router->interface[i].hw_fd, &errset);
+            if(router->interface[i].hw_fd > max_fd)
+                max_fd = router->interface[i].hw_fd;
         }
-
+        // set the timeout at 1 sec
         timeout.tv_sec  = 1;
         timeout.tv_usec = 0;
-        ret = select( max_fd + 1, &rdset, NULL, &errset, &timeout );
-
-        for( i = 0; i<router->num_interfaces; i++ ) {
+        // call select
+        ret = select(max_fd + 1, &rdset, NULL, &errset, &timeout);
+        // now check each interface fd
+        for(i = 0; i<router->num_interfaces; i++) {
             intf = &router->interface[i];
-            if( intf->enabled ) {
-                if( FD_ISSET( intf->hw_fd, &rdset ) ) {
-                    len = real_read_once( intf->hw_fd, buf, ETH_MAX_LEN );
-                    if( len <= 0 )
-                        printf( " ** sr_cpu_input(..) length error on interface %s",
-                                       intf->name );
+            // check if interface was enabled
+            if(intf->enabled) {
+                // check if fd is set
+                if(FD_ISSET(intf->hw_fd, &rdset)) {
+                     // now read data
+                    len = real_read_once(intf->hw_fd, buf, ETH_MAX_LEN);
+                    // if data len is <=0
+                    if(len <= 0)
+                        printf(" ** sr_cpu_input(..) length error on interface %s", intf->name);
                     else {
-
-                        sr_integ_input( sr, buf, len, intf->name );
-                        sr_log_packet( sr, buf, len );
-
+                        // send to router
+                        sr_integ_input(sr, buf, len, intf->name);
+                        // log packet
+                        sr_log_packet(sr, buf, len) ;
                         return 1;
                     }
                 }
-
-                if( FD_ISSET( intf->hw_fd, &errset ) ) {
-                    printf(" ** sr_cpu_input(..) error %s\n",
-                                   intf->name );
+               // check if error fd is set
+                if(FD_ISSET(intf->hw_fd, &errset)) {
+                    printf(" ** sr_cpu_input(..) error %s\n", intf->name);
                     return 0;
                 }
             }
         }
     }
-    while( 1 );
 #endif
     return 1;
 } /* -- sr_cpu_input -- */
@@ -243,8 +230,7 @@ int sr_cpu_output(struct sr_instance* sr /* borrowed */,
     assert(buf);
     assert(iface);
 #ifdef _CPUMODE_
-    struct sr_instance* sr_inst = get_sr();
-    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr);
     // get interface instance
     interface_t* intf = get_interface_name(router, iface);
     pthread_mutex_lock(&intf->hw_lock);
