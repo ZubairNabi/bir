@@ -183,18 +183,27 @@ bool ethernet_send_frame( addr_mac_t* dst,
                           byte* payload,
                           unsigned payload_len ) {
    printf(" ** ethernet_send_frame(..) called \n");
-   byte* ethernet_frame = NULL;
-   // check if dst mac is zero (arp request)
-   // make frame with ethernet header
-   if(dst->octet[0] == 255  && dst->octet[1] == 255 && dst->octet[2] == 255 && dst->octet[3] == 255 && dst->octet[4] == 255 && dst-> octet[5] == 255) {
-       ethernet_frame = ethernet_make_partial_frame(intf, type, payload, payload_len); 
-   } else {
-       ethernet_frame = ethernet_make_frame(dst, intf, type, payload, payload_len);
-   }
-   if(ethernet_frame == NULL)
-      return FALSE;
-   // send via output
-   if(sr_integ_low_level_output(get_sr(), ethernet_frame, payload_len + sizeof(hdr_ethernet_t), intf->name) == 0)
-      return TRUE;
-   return FALSE;
+   // check if sending interface is active
+   if(intf->enabled == TRUE) {
+   	byte* ethernet_frame = NULL;
+      	// check if dst mac is zero (arp request)
+   	// make frame with ethernet header
+   	if(dst->octet[0] == 255  && dst->octet[1] == 255 && dst->octet[2] == 255 && dst->octet[3] == 255 && dst->octet[4] == 255 && dst-> octet[5] == 255) {
+   	   	ethernet_frame = ethernet_make_partial_frame(intf, type, payload, payload_len); 
+   	} else {
+       		ethernet_frame = ethernet_make_frame(dst, intf, type, payload, payload_len);
+  	}
+   	if(ethernet_frame == NULL)
+      		return FALSE;
+   	// send via output
+   	if(sr_integ_low_level_output(get_sr(), ethernet_frame, payload_len + sizeof(hdr_ethernet_t), intf->name) == 0)
+   		return TRUE;
+   	 else 
+   		return FALSE;
+        
+    } else {
+        printf(" ** ethernet_send_frame(..): error sending interface %s is down \n", intf->name);
+        //free(payload);
+        return FALSE;
+    }
 }
