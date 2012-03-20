@@ -23,6 +23,7 @@
 #include "sr_ip.h"
 #include "sr_icmp_types_send.h"
 #include "cli/cli.h"
+#include "reg_defines.h"
 
 // Interval for the ARP cache garbage collector thread in seconds
 #define ARP_GC_INTERVAL_S 5
@@ -440,4 +441,61 @@ void arp_cache_to_string() {
       head = head->next;
    }
    pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
+}
+
+void arp_write_hw() {
+#ifdef _CPUMODE_
+   printf(" ** arp_write_hw(..) called \n");
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   node* static_head;
+   node* dynamic_head;
+   unsigned int mac_hi = 0;
+   unsigned int mac_lo = 0;
+   int i = 0;
+   arp_cache_entry_t* cache_entry;
+   pthread_mutex_lock(&router->arp_cache->lock_static);
+      static_head = router->arp_cache->arp_static_cache_list;
+      while(static_head != NULL && i < ROUTER_OP_LUT_ARP_TABLE_DEPTH) {
+         cache_entry = (arp_cache_entry_t*) static_head->data;
+         mac_hi |= ((unsigned int)cache_entry->mac.octet[0]) << 8;
+         mac_hi |= ((unsigned int)cache_entry->mac.octet[1]);
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[2]) << 24;
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[3]) << 16;
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[4]) << 8;
+	 mac_lo |= ((unsigned int)cache_entry->mac.octet[5]);
+         // write mac
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, mac_hi);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, mac_lo);
+         // write ip
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, ntohl(cache_entry->ip));
+         // write table index
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_WR_ADDR, i);
+         static_head = static_head->next;
+         i++;
+      }
+   pthread_mutex_unlock(&router->arp_cache->lock_static);
+   // now dynamic cache
+    pthread_mutex_lock(&router->arp_cache->lock_dynamic);
+      dynamic_head = router->arp_cache->arp_cache_list;
+      while(dynamic_head != NULL && i < ROUTER_OP_LUT_ARP_TABLE_DEPTH) {
+         cache_entry = (arp_cache_entry_t*) dynamic_head->data;
+         mac_hi |= ((unsigned int)cache_entry->mac.octet[0]) << 8;
+         mac_hi |= ((unsigned int)cache_entry->mac.octet[1]);
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[2]) << 24;
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[3]) << 16;
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[4]) << 8;
+         mac_lo |= ((unsigned int)cache_entry->mac.octet[5]);
+         // write mac
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, mac_hi);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, mac_lo);
+         // write ip
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, ntohl(cache_entry->ip));
+         // write table index
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_WR_ADDR, i);
+         dynamic_head = dynamic_head->next;
+         i++;
+      }
+   pthread_mutex_unlock(&router->arp_cache->lock_dynamic); 
+#endif
 }
