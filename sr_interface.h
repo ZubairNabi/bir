@@ -70,4 +70,6 @@ void write_interface_hw(struct sr_router* router);
 
 uint32_t get_hw_port(int intf_num);
 
+interface_t get_hw_intf(int hw_port);
+
 #endif /* SR_INTERFACE_H */

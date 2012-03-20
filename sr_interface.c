@@ -258,3 +258,15 @@ uint32_t get_hw_port(int intf_num) {
       return 16;
    return 64;
 }
+
+interface_t get_hw_intf(int hw_port) {
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   if(hw_port == 1)
+      return router->interface[0];
+   else if(hw_port == 4)
+      return router->interface[1];
+   else if(hw_port == 16)
+      return router->interface[2];
+   return router->interface[3];
+}
