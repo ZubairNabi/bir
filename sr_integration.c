@@ -139,12 +139,17 @@ void sr_integ_input(struct sr_instance* sr,
     struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
     // get interface object for this interface name
     interface_t *intf = get_interface_name(subsystem, interface);
-    printf(" ********************* new packet received with length %u on inteface: %s\n", len, intf->name);
-    // create a copy of the packet
-    uint8_t* packet_copy = (uint8_t*) malloc_or_die(len);
-    memcpy(packet_copy, packet, len);
-    // send to ethernet frame handler
-    ethernet_handle_frame(subsystem, packet_copy, len, intf);
+    printf(" ********************* new packet received with length %u on interface: %s\n", len, intf->name);
+    // check if interface is active
+    if(intf->enabled == TRUE) {
+       // create a copy of the packet
+       uint8_t* packet_copy = (uint8_t*) malloc_or_die(len);
+       memcpy(packet_copy, packet, len);
+       // send to ethernet frame handler
+       ethernet_handle_frame(subsystem, packet_copy, len, intf);
+    } else  {
+       printf(" ** sr_integ_input(..): interface: %s is down. Dropping packet\n", intf->name);
+    }
 
 } /* -- sr_integ_input -- */
 
