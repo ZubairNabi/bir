@@ -211,7 +211,8 @@ void cli_show_hw_intf() {
 }
 
 void cli_show_hw_route() {
-    cli_send_str( "not yet implemented: cli_show_hw_route()\n" );
+    cli_send_str( "\n HW Routing Table:\n" );
+    rrtable_read_hw();
 }
 #endif
 

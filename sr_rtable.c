@@ -222,3 +222,39 @@ void rrtable_write_hw() {
    pthread_mutex_unlock(&router->rtable->lock_rtable);
 #endif
 }
+
+void rrtable_read_hw() {
+#ifdef _CPUMODE_
+   printf(" ** rrtable_read_hw(..) called \n");
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   char *str;
+   int i;
+   uint32_t destination, next_hop, mask, hw_port;
+   interface_t intf;
+   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Interface\n");
+   cli_send_str(str);
+   free(str);
+   for(i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
+        // write index to read register
+        writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_RD_ADDR, i);
+        // read values from registers
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, &destination);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, &next_hop);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, &mask);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, &hw_port);
+        // get interface for hw port
+        intf = get_hw_intf(hw_port);
+        asprintf(&str, "%s, ", quick_ip_to_string(htonl(destination)));
+        cli_send_str(str);
+        free(str);
+        asprintf(&str, "%s ", quick_ip_to_string(htonl(next_hop)));
+        cli_send_str(str);
+        free(str);
+        asprintf(&str, " %s, %s\n", quick_ip_to_string(htonl(mask)), intf.name);
+        cli_send_str(str);
+        free(str);
+   }
+#endif   
+
+}
