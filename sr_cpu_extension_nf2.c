@@ -248,7 +248,7 @@ int sr_cpu_output(struct sr_instance* sr /* borrowed */,
     // get interface instance
     interface_t* intf = get_interface_name(router, iface);
     pthread_mutex_lock(&intf->hw_lock);
-    int ret = writen(intf->hw_fd, buf, len);
+    int ret = real_writen(intf->hw_fd, buf, len);
     pthread_mutex_unlock(&intf->hw_lock); 
     /* Return the length of the packet on success, -1 on failure */
     return ret;
