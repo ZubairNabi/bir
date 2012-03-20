@@ -37,6 +37,8 @@ void rrtable_destroy(rtable_t *rtable){
     pthread_mutex_unlock(&rtable->lock_rtable);
     // delete lock
     pthread_mutex_destroy(&rtable->lock_rtable);
+    // write to hw
+    rrtable_write_hw();
 }
 
 /**
@@ -90,6 +92,8 @@ void rrtable_route_add( rtable_t *rtable,
    rtable->rtable_list = llist_insert_sorted(rtable->rtable_list, predicate_ip_sort_route_t, (void*) route);
    // unblock table
    pthread_mutex_unlock(&rtable->lock_rtable);
+   // write to hw
+   rrtable_write_hw();
 }
 
 /**
@@ -112,9 +116,12 @@ bool rrtable_route_remove( rtable_t *rtable, addr_ip_t dest, addr_ip_t mask ) {
    pthread_mutex_unlock(&rtable->lock_rtable);
    if(ret == NULL)
       return FALSE;
-   else
+   else {
       rtable->rtable_list = ret;
+      // write to hw
+      rrtable_write_hw();
       return TRUE;
+   }
 }
 
 /**
@@ -131,6 +138,8 @@ void rrtable_purge_all( rtable_t* rtable ) {
    rtable->rtable_list = llist_delete_no_count(rtable->rtable_list);
    // unlock table
    pthread_mutex_unlock(&rtable->lock_rtable);
+   // write to hw
+   rrtable_write_hw();
 }  
 
 /**
