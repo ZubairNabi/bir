@@ -453,3 +453,34 @@ void arp_write_hw() {
    pthread_mutex_unlock(&router->arp_cache->lock_dynamic); 
 #endif
 }
+
+void arp_read_hw() {
+#ifdef _CPUMODE_
+   printf(" ** arp_read__hw(..) called \n");
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   char *str;
+   int i;
+   unsigned int mac_hi = 0, mac_lo = 0;
+   uint32_t ip;
+   addr_mac_t mac;
+   asprintf(&str, " MAC, IP\n");
+   cli_send_str(str);
+   free(str);
+   for (i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
+       // write table index to read register   
+       writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_RD_ADDR, i);
+       // read mac hi, lo
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, &mac_lo);
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, &mac_hi);
+       //convert to mac 
+       mac = get_mac_from_hi_lo(&mac_hi, &mac_lo);
+       // read ip
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, &ip);
+       ip = htonl(ip);
+       asprintf(&str, "%s, %s\n", quick_mac_to_string(mac.octet), quick_ip_to_string(ip));
+       cli_send_str(str);
+       free(str);
+   }
+#endif
+}

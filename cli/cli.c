@@ -203,7 +203,8 @@ void cli_show_hw_about() {
 }
 
 void cli_show_hw_arp() {
-    cli_send_str( "not yet implemented: cli_show_hw_arp()\n" );
+    cli_send_str( " Hw ARP Cache:\n" );
+    arp_read_hw();
 }
 
 void cli_show_hw_intf() {

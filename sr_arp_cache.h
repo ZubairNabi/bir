@@ -146,3 +146,5 @@ int arp_cache_handle_partial_frame( struct sr_router* router,
 void arp_cache_to_string();
 
 void arp_write_hw();
+
+void arp_read_hw();
