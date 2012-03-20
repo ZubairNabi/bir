@@ -65,11 +65,12 @@ bool check_ospf_status(sr_router* router) {
 
 void hw_init(sr_router* router) {
    printf(" ** hw_init(..) called\n");
-   router->hw_device.device_name = "DEFAULT_IFACE";
+   router->hw_device.device_name = DEFAULT_IFACE;
     if(check_iface(&router->hw_device) == 0) {
-       openDescriptor(&router->hw_device);
-    } else {
-       exit(1);
+       int ret = openDescriptor(&router->hw_device);
+       if(ret < 0) {
+          printf(" ** hw_init(..): error opening device\n");
+          exit(1);
+       }
     }
-    
 }
