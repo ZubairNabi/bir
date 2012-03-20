@@ -31,6 +31,7 @@ typedef struct {
 #   define INTF2 0x20
 #   define INTF3 0x80
     byte hw_id;            /* hardware id of the interface */
+    uint32_t hw_port;
     int  hw_fd;            /* socket file descriptor to talk to the hw */
     pthread_mutex_t hw_lock; /* lock to prevent issues w/ multiple writers */
 #endif
