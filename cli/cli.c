@@ -207,7 +207,8 @@ void cli_show_hw_arp() {
 }
 
 void cli_show_hw_intf() {
-    cli_send_str( "not yet implemented: cli_show_hw_intf()\n" );
+    cli_send_str( "\n HW Interfaces:\n" );
+    read_interface_hw();
 }
 
 void cli_show_hw_route() {
