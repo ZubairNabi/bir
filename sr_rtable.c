@@ -187,6 +187,7 @@ route_t* make_route_t(char type, addr_ip_t dst, interface_t intf, addr_ip_t next
 } 
 
 void rrtable_write_hw() {
+#ifdef _CPUMODE_
    printf(" ** rrtable_write_hw(..) called \n");
    struct sr_instance* sr_inst = get_sr();
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
@@ -196,12 +197,19 @@ void rrtable_write_hw() {
    int i = 0;
    while(head != NULL && i != ROUTER_OP_LUT_ROUTE_TABLE_DEPTH) {
       route = (route_t*) head->data;
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, route->destination);
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, route->subnet_mask);
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, route->next_hop);
+      // Destination IP
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, ntohl(route->destination));
+      // Mask 
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, ntohl(route->subnet_mask));
+      //Next hop
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, ntohl(route->next_hop));
+      //Output port
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, route->intf.hw_port);
+      // row index
       writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR, i);
       head = head->next;
       i++;
    }
    pthread_mutex_unlock(&router->rtable->lock_rtable);
+#endif
 }
