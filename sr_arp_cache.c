@@ -42,9 +42,6 @@
  * @param router  The router whose ARP cache (router->arp_cache) will be inited
  */
 void arp_cache_init( sr_router* router ) {
-  /* TODO: Initialise router->arp_cache.  Memory to which router->arp_cache
-   * will point needs to be allocated, and any sub-structures also initialised.
-   */
    printf(" ** arp_cache_init(..) called \n");
    // Initialize cache
    router->arp_cache = (arp_cache_t*) malloc_or_die(sizeof(arp_cache_t));
@@ -61,54 +58,6 @@ void arp_cache_init( sr_router* router ) {
    packet_dispatcher_run(router->arp_cache->packet_dispatcher);
    // Run cache timeout thread
    time_out_run(router);
-   
- /*arp_cache_entry_t *entry00 = create_entry("0", 0,0,0,0,0,0);
-   arp_cache_entry_t *entry1 = create_entry("1.1.1.1", 1,1,1,1,1,1);
-   arp_cache_entry_t *entry2 = create_entry("2.2.2.2", 2,2,2,2,2,2);
-   arp_cache_entry_t *entry3 = create_entry("3.3.3.3", 3,3,3,3,3,3);
-   arp_cache_entry_t *entry4 = create_entry("3.3.3.3", 4,4,4,4,4,4);
-   arp_cache_entry_t *entry5 = create_entry("2.2.2.2", 4,4,4,4,4,4);
-   arp_cache_entry_t *entry6 = create_entry("2.2.2.2", 4,4,4,4,4,4);
-
-   NODE *list = list_create((void*)entry00);
-   list = list_insert_beginning(list, (void*)entry1);
-   list = list_insert_beginning(list, (void*)entry2);
-   list = list_insert_beginning(list, (void*)entry3);
-   list = list_insert_beginning(list, (void*)entry4);
-   list = list_insert_beginning(list, (void*)entry5);
-    list = list_insert_beginning(list, (void*)entry6);
-   printf("running2\n");
-   addr_ip_t ip = make_ip_addr("2.2.2.2");
-   addr_ip_t *ip_ptr = &ip;
-   addr_mac_t mac2 = make_mac_addr(1,1,1,1,1,1);
-   addr_mac_t* mac_ptr2 = &mac2;
-   printf("Insertion\n");
-   list_display_all(list); */
-   /*
-   NODE *ret  = list_find(list, findip, (void*) ip_ptr);
-   if(ret != NULL)
-      print_cache_entry(ret->data);
-   list_display_all(list); */
-   /*bool r  = list_exists_predicate(list, findip, (void*) ip_ptr);
-   if (r == TRUE)
-	printf("found\n");
-   else
-	printf("not found\n");
-   */
-   
-   /*arp_cache_entry_t *entry4 = create_entry("3.3.3.1", 1,1,1,1,1,2);
-   list  = list_append_predicate(list, findip, (void*) entry4, TRUE);
-   */
-  /* 
-   printf("Deletion\n");
-   int count = 0;
-   NODE* ret = list_remove_predicate_all(list, findip, (void*) ip_ptr, &count);
-   if(ret!=NULL)
-      list = ret;
-   printf("Deleted: %d\n", count);
-   list_display_all(list);
-   */
-  
 }
 
 /**
@@ -118,7 +67,6 @@ void arp_cache_init( sr_router* router ) {
  * @param cache  The ARP cache to destroy
  */
 void cache_destroy( arp_cache_t* cache ) {
-  // TODO: Destroy the ARP cache.
    printf(" ** arp cache_destroy(..) called\n");
    pthread_mutex_lock(&cache->lock_dynamic);
    cache->arp_cache_list = llist_delete_no_count(cache->arp_cache_list);
@@ -135,8 +83,6 @@ void cache_destroy( arp_cache_t* cache ) {
    pthread_mutex_destroy(&cache->lock_static);
    pthread_mutex_destroy(&cache->lock_dynamic);
    pthread_mutex_destroy(&cache->lock_queue);
-   //packet_dispatcher_stop(cache->packet_dispatcher);
-   //packet_dispatcher_delete(cache->packet_dispatcher);
    pthread_cancel(cache->time_out_thread);
 }
 
@@ -156,10 +102,12 @@ bool cache_static_entry_add( sr_router* router,
   entry->timeout = (struct timeval*) malloc_or_die(sizeof(struct timeval));
   gettimeofday(entry->timeout, NULL);
   entry->timeout->tv_sec = entry->timeout->tv_sec + ARP_CACHE_TIMEOUT;
-        pthread_mutex_lock(&router->arp_cache->lock_static);
-        router->arp_cache->arp_static_cache_list = llist_update_beginning(router->arp_cache->arp_static_cache_list, predicate_ip,(void*) entry);   
-        pthread_mutex_unlock(&router->arp_cache->lock_static);
-         return TRUE;
+  pthread_mutex_lock(&router->arp_cache->lock_static);
+  router->arp_cache->arp_static_cache_list = llist_update_beginning(router->arp_cache->arp_static_cache_list, predicate_ip,(void*) entry);   
+  pthread_mutex_unlock(&router->arp_cache->lock_static);
+  // update hw
+  arp_write_hw();
+  return TRUE;
 }
 
 /**
@@ -167,13 +115,14 @@ bool cache_static_entry_add( sr_router* router,
  * @return true if succeeded (false if ip wasn't in the cache as a static entry)
  */
 bool cache_static_entry_remove( sr_router* router, addr_ip_t ip ) {
-  // TODO: Remove an entry from the static cache
   printf(" ** arp cache_static_entry_remove(..) called\n");
   pthread_mutex_lock(&router->arp_cache->lock_static);
   node *ret = (node*) llist_remove(router->arp_cache->arp_static_cache_list, predicate_ip, (void*)&ip);
   pthread_mutex_unlock(&router->arp_cache->lock_static);
   if(ret != NULL) {
      router->arp_cache->arp_static_cache_list = ret;
+     // update hw
+     arp_write_hw();
      return TRUE;
   }
   return FALSE;
@@ -185,11 +134,12 @@ bool cache_static_entry_remove( sr_router* router, addr_ip_t ip ) {
  */
 unsigned cache_static_purge( struct sr_router* router ) {
   printf(" ** arp cache_static_purge(..) called\n");
-  // TODO: Remove all entries from the static cache
   int ret = 0;
   pthread_mutex_lock(&router->arp_cache->lock_static);
   router->arp_cache->arp_static_cache_list = llist_delete(router->arp_cache->arp_static_cache_list, &ret);
   pthread_mutex_unlock(&router->arp_cache->lock_static);
+  // update hw
+  arp_write_hw();
   return ret;
 }
 
@@ -209,10 +159,12 @@ bool cache_dynamic_entry_add( struct sr_router* router,
   entry->timeout = (struct timeval*) malloc_or_die(sizeof(struct timeval));
   gettimeofday(entry->timeout, NULL);
   entry->timeout->tv_sec = entry->timeout->tv_sec + ARP_CACHE_TIMEOUT;
-        pthread_mutex_lock(&router->arp_cache->lock_dynamic);
-        router->arp_cache->arp_cache_list = llist_update_beginning(router->arp_cache->arp_cache_list, predicate_ip, (void*) entry);
-        pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
-         return TRUE;
+  pthread_mutex_lock(&router->arp_cache->lock_dynamic);
+  router->arp_cache->arp_cache_list = llist_update_beginning(router->arp_cache->arp_cache_list, predicate_ip, (void*) entry);
+  pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
+  // update hw
+  arp_write_hw();
+  return TRUE;
 }
 
 /**
@@ -220,13 +172,14 @@ bool cache_dynamic_entry_add( struct sr_router* router,
  * @return true if succeeded (false if ip wasn't in the cache as a dynamic entry)
  */
 bool cache_dynamic_entry_remove( sr_router* router, addr_ip_t ip ) {
-  // TODO: Remove an entry from the dynamic cache
   printf(" ** arp dynamic_entry_remove(..) called\n");
   pthread_mutex_lock(&router->arp_cache->lock_dynamic);
   node *ret = (node*) llist_remove(router->arp_cache->arp_cache_list, predicate_ip, (void*)&ip);
   pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
   if(ret != NULL) {
      router->arp_cache->arp_cache_list = ret;
+      // update hw
+      arp_write_hw();
      return TRUE;
   }
   return FALSE;
@@ -238,12 +191,13 @@ bool cache_dynamic_entry_remove( sr_router* router, addr_ip_t ip ) {
  * @return  number of dynamic entries removed
  */
 unsigned cache_dynamic_purge( struct sr_router* router ) {
-  // TODO: Remove all entries from the dynamic cache
   printf(" ** arp cache_dynamic_purge(..) called\n");
   int ret = 0;
   pthread_mutex_lock(&router->arp_cache->lock_dynamic);
   router->arp_cache->arp_cache_list = llist_delete(router->arp_cache->arp_cache_list, &ret);
   pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
+  // update hw
+  arp_write_hw();
   return ret;
 }
 
@@ -274,6 +228,8 @@ void remove_timed_out(void* router_input) {
       router->arp_cache->arp_cache_list = llist_remove_all_no_count(router->arp_cache->arp_cache_list, predicate_timeval2, (void*)current_time);
       // unlock list
       pthread_mutex_unlock(&router->arp_cache->lock_dynamic);
+      // update hw
+      arp_write_hw();
    }
 }
 
@@ -305,8 +261,6 @@ int arp_cache_handle_partial_frame( struct sr_router* router,
                                     byte* payload /* given */,
                                     unsigned len,
                                     uint16_t type) {
-
-  // TODO: Handle a packet
   /*
    * This functions handles all outgoing packets.  There are three conditions
    * that could occur for an outgoing packet:
