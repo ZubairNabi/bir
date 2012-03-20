@@ -10,6 +10,8 @@
 #include "sr_neighbor.h"
 #include "cli/cli.h"
 #include "sr_cpu_extension_nf2.h"
+#include "reg_defines.h"
+#include "sr_pwospf.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -190,3 +192,56 @@ void display_all_interfaces_neighbors_str() {
    }
 }
 
+void write_interface_hw(struct sr_router* subsystem) {
+#ifdef _CPUMODE_
+   printf(" ** write_interface_hw(..) called \n");
+   unsigned data_hi, data_lo;
+   uint16_t padding = 0;
+   pthread_mutex_lock(&subsystem->interface[subsystem->num_interfaces].hw_lock);
+   /*MAC address needs to be of the form 00:00:AA:BB:CC:DD:EE:FF
+    * Hi: 00:00:AA:BB
+    * Lo: CC:DD:EE:FF
+    */
+   // add padding to hi mac address
+   memcpy(&data_hi, &padding, 2);
+   //copy 2 hi mac address octets  
+   memcpy(&data_hi + 2, &subsystem->interface[subsystem->num_interfaces].mac.octet[0], 1);
+   memcpy(&data_hi + 3, &subsystem->interface[subsystem->num_interfaces].mac.octet[1], 1);
+   // copy 4 lo mac address octets
+   memcpy(&data_lo, &subsystem->interface[subsystem->num_interfaces].mac.octet[2], 1);
+   memcpy(&data_lo + 1, &subsystem->interface[subsystem->num_interfaces].mac.octet[3], 1);
+   memcpy(&data_lo + 2, &subsystem->interface[subsystem->num_interfaces].mac.octet[4], 1);
+   memcpy(&data_lo + 3, &subsystem->interface[subsystem->num_interfaces].mac.octet[5], 1);
+   //IMP: IP addresses are in network order
+   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, ntohl(subsystem->interface[subsystem->num_interfaces].ip));
+   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, subsystem->num_interfaces);
+   if(subsystem->num_interfaces == 0) {
+       //IMP: MAC addresses are already in host order
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_HI, data_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_LO, data_lo);
+   } else if(subsystem->num_interfaces == 1) {
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_HI, data_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_LO, data_lo);
+   } else if(subsystem->num_interfaces == 2) {
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_HI, data_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_LO, data_lo);
+   } else if(subsystem->num_interfaces == 3) {
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_HI, data_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_LO, data_lo);
+       // last interface
+       //add allspfrouters ip
+       int i = subsystem->num_interfaces + 1;
+       char* all_spf_routers =  ALL_SPF_ROUTERS_IP;
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, ntohl(make_ip_addr(all_spf_routers))); 
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, i);
+       // now add zeroes to the rest
+       i++;
+       while(i < ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH) {
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, 0);
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, i);
+          i++;
+       }
+   }
+   pthread_mutex_unlock(&subsystem->interface[subsystem->num_interfaces].hw_lock);
+#endif
+}

@@ -33,14 +33,12 @@
 #include "sr_pwospf.h"
 #include "sr_rt.h"
 #include "sr_neighbor_db.h"
-#include "reg_defines.h"
 
 #ifdef _CPUMODE_
 #include "sr_cpu_extension_nf2.h"
-#endif
-
 #include "nf2util.h"
 #include "nf2.h"
+#endif
 
 struct sr_instance* get_sr(); 
 int sr_integ_low_level_output(struct sr_instance*,
@@ -165,33 +163,11 @@ void sr_integ_add_interface(struct sr_instance* sr,
     printf(" ** sr_integ_add_interface(..) called \n");
     struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr);
     subsystem->interface[subsystem->num_interfaces] = set_interface(vns_if);
+#ifdef _CPUMODE_
+    write_interface_hw(subsystem);
+#endif
     subsystem->num_interfaces = subsystem->num_interfaces + 1;
     printf(" ** sr_integ_add_interface(..) current no. of interfaces: %u\n", subsystem->num_interfaces);
-    //write to hw
-#ifdef _CPUMODE_
-    unsigned data_hi, data_lo;
-    uint16_t padding = 0;
-    memcpy(&data_hi, &subsystem->interface[subsystem->num_interfaces].mac.octet[0], 8);
-    memcpy(&data_hi + 8, &subsystem->interface[subsystem->num_interfaces].mac.octet[1], 8);
-    memcpy(&data_hi + 16, &subsystem->interface[subsystem->num_interfaces].mac.octet[2], 8);
-    memcpy(&data_hi + 24, &subsystem->interface[subsystem->num_interfaces].mac.octet[3], 8);
-    memcpy(&data_lo, &subsystem->interface[subsystem->num_interfaces].mac.octet[4], 8);
-    memcpy(&data_lo + 8, &subsystem->interface[subsystem->num_interfaces].mac.octet[5], 8);
-    memcpy(&data_lo + 16, &padding, 16);
-    if(subsystem->num_interfaces == 0) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_HI, data_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_LO, data_lo);
-    } else if(subsystem->num_interfaces == 1) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_HI, data_hi);  
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_LO, data_lo);
-    } else if(subsystem->num_interfaces == 2) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_HI, data_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_LO, data_lo);
-    } else if(subsystem->num_interfaces == 3) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_HI, data_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_LO, data_lo);
-    }
-#endif
     
 } /* -- sr_integ_add_interface -- */
 

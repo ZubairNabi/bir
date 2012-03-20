@@ -65,20 +65,6 @@ bool check_interface(interface_t* intf);
 
 void display_all_interfaces_neighbors_str();
 
-/**
- * Reads in a list of interfaces from filename and adds them to the router
- * subsystem in sr.
- *
- * Line Format: name ip mac
- * Example Line: eth0 192.168.0.1 AB:CD:EF:01:23:45
- */
-void sr_read_intf_from_file( struct sr_router* router, const char* filename );
-
-#ifdef _CPUMODE_
-#define STR_INTF_HW_MAX_LEN 1024 /* actual max is 775; this provides some slop */
-
-int intf_hw_to_string( struct router_t* router,
-                       interface_t* intf, char* buf, int len );
-#endif /* _CPUMODE_ */
+void write_interface_hw(struct sr_router* router);
 
 #endif /* SR_INTERFACE_H */
