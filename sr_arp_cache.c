@@ -327,13 +327,17 @@ int arp_cache_handle_partial_frame( struct sr_router* router,
             arp_queue_entry_t *item = (arp_queue_entry_t*) q_ret->data;
             if(item->tries >=5) {
                printf(" ** arp_cache_handle_partial_frame(..): Host hasn't replied to 5 requests, sending ICMP host unreachable\n");
-            // send icmp destination host unreachable
-            uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_HOST;
-            // get original ip header
-            struct ip* ip_header = make_ip_header(payload);
-            uint16_t packet_len = ip_header->ip_len;
-            icmp_type_dst_unreach_send(&code, payload, &packet_len, ip_header);
-
+            //check if sender not self
+            if(intf->ip != dst_ip) {
+            	// send icmp destination host unreachable
+            	uint8_t code = ICMP_TYPE_CODE_DST_UNREACH_HOST;
+            	// get original ip header
+            	struct ip* ip_header = make_ip_header(payload);
+            	uint16_t packet_len = ip_header->ip_len;
+            	icmp_type_dst_unreach_send(&code, payload, &packet_len, ip_header);
+            } else { 
+                printf(" ** arp_cache_handle_partial_frame(..): Host hasn't replied to 5 requests, but I'm the host, so no ICMP error message\n");
+            }
             } else {
                // increment tries
                item->tries = item->tries + 1;
