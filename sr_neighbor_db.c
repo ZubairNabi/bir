@@ -244,7 +244,7 @@ void display_neighbor_vertices_str() {
    v_head = router->neighbor_db->neighbor_db_list;
    while(v_head != NULL) {
       vertex = v_head->data; 
-      asprintf(&str, "Router Id: %s, Area Id: %lu\n", quick_ip_to_string(vertex->router_entry.router_id), vertex->router_entry.area_id);
+      asprintf(&str, "Router Id: %s, Area Id: %lu, Timestamp: %ld.%06ld\n", quick_ip_to_string(vertex->router_entry.router_id), vertex->router_entry.area_id, vertex->timestamp->tv_sec, vertex->timestamp->tv_usec);
       cli_send_str(str);
       free(str);
       // now interate through all subnets of this vertex
