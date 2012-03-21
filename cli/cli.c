@@ -199,21 +199,22 @@ void cli_show_hw() {
 }
 
 void cli_show_hw_about() {
-    cli_send_str( "not yet implemented: cli_show_hw_about()\n" );
+    cli_send_str( "\nHW About Stats:\n" );
+    read_info_hw();
 }
 
 void cli_show_hw_arp() {
-    cli_send_str( " Hw ARP Cache:\n" );
+    cli_send_str( "\nHW ARP Cache:\n" );
     arp_read_hw();
 }
 
 void cli_show_hw_intf() {
-    cli_send_str( "\n HW Interfaces:\n" );
+    cli_send_str( "\nHW Interfaces:\n" );
     read_interface_hw();
 }
 
 void cli_show_hw_route() {
-    cli_send_str( "\n HW Routing Table:\n" );
+    cli_send_str( "\nHW Routing Table:\n" );
     rrtable_read_hw();
 }
 #endif

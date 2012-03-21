@@ -332,3 +332,56 @@ void read_interface_hw() {
     } 
 #endif
 }
+
+void read_info_hw() {
+#ifdef _CPUMODE_
+   printf(" ** read_interface_hw(..) called \n");
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   char *str;
+   uint32_t data;
+   // read arp misses
+   readReg(&router->hw_device, ROUTER_OP_LUT_ARP_NUM_MISSES, &data);
+   asprintf(&str, "arp misses: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   // read lpm misses
+   readReg(&router->hw_device, ROUTER_OP_LUT_LPM_NUM_MISSES, &data);
+   asprintf(&str, "lpm misses: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   // read cpu pkts send
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_CPU_PKTS_SENT, &data);
+   asprintf(&str, "cpu packets sent: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_OPTS_VER, &data);
+   asprintf(&str, "bad opts version: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_CHKSUMS, &data);
+   asprintf(&str, "bad checksums: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_TTLS, &data);
+   asprintf(&str, "bad ttls: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_NON_IP_RCVD, &data);
+   asprintf(&str, "non IP received: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_PKTS_FORWARDED, &data);
+   asprintf(&str, "packets forwarded: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_WRONG_DEST, &data);
+   asprintf(&str, "wrong destination: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_FILTERED_PKTS, &data);
+   asprintf(&str, "filtered packets: %lu\n", data);
+   cli_send_str(str);
+   free(str);
+#endif
+}
