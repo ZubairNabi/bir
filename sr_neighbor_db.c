@@ -25,6 +25,8 @@ void neighbor_db_add_interfaces_static(sr_router* router) {
    for( i = 0; i < router->num_interfaces; i++) {
       // store subnet: apply mask
       subnet = create_subnet_entry_t((router->interface[i].ip & router->interface[i].subnet_mask), router->interface[i].subnet_mask, 0);
+      //also add as dynamic entries to routing table
+      rrtable_route_add(router->rtable, router->interface[i].ip, make_ip_addr("0.0.0.0"), router->interface[i].subnet_mask, &router->interface[i], 'd');
       add_subnet_entry_t(router, src, subnet);
    }
    // now static entries from static routing table
@@ -34,8 +36,11 @@ void neighbor_db_add_interfaces_static(sr_router* router) {
    route_t* route;
    while( first!= NULL) {
       route = (route_t*) first->data;
-      subnet = create_subnet_entry_t((route->destination & route->subnet_mask), route->subnet_mask, 0);
-      add_subnet_entry_t(router, src, subnet);
+      // check if static
+      if(route->type == 's') {
+         subnet = create_subnet_entry_t((route->destination & route->subnet_mask), route->subnet_mask, 0);
+         add_subnet_entry_t(router, src, subnet);
+      }
       first = first->next;
    }
    pthread_mutex_unlock(&router->rtable->lock_rtable);
