@@ -277,3 +277,12 @@ void update_neighbor_vertex_t(sr_router* router, router_entry_t r_entry) {
    }
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
 }
+
+void add_interfaces_to_rtable(sr_router* router) {
+   printf(" ** add_interfaces_to_rtable(..) called \n");
+   int i;
+   for( i = 0; i < router->num_interfaces; i++) {
+      //add as dynamic entries to routing table
+      rrtable_route_add(router->rtable, router->interface[i].ip, make_ip_addr("0.0.0.0"), router->interface[i].subnet_mask, &router->interface[i], 'd');
+   }
+}
