@@ -6,7 +6,7 @@
 
 void dijkstra(sr_router* router) {
    printf(" ** dijkstra(..) called\n");
-   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+/*   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
    node* head = router->neighbor_db->neighbor_db_list;
    neighbor_vertex_t* vertex;
    node* temp_head;
@@ -73,4 +73,5 @@ void dijkstra(sr_router* router) {
       head = head->next;
    }
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+*/
 }

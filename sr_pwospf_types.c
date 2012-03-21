@@ -95,11 +95,14 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
              pthread_mutex_unlock(&intf->neighbor_lock);
              display_neighbor_t((void*) neighbor);
-             // create src,dst entries
-             router_entry_t src, dst;
-             src.subnet = neighbor->ip;
-             src.mask = neighbor->mask;
-             src.router_id = neighbor->id;
+             // create router entry
+             router_entry_t router_entry;
+             router_entry.router_id = neighbor->id;
+             router_entry.area_id = 0;
+             //add vertex with router entry info
+             add_neighbor_vertex_t(router, router_entry);
+             //create subnet entry
+             subnet_entry_t* subnet_entry;
              //add adverts to db
              printf(" ** pwospf_lsu_type(..) adding adverts to neighbor db\n");
              int i;
@@ -109,11 +112,11 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                 memcpy(&ls_advert->mask, payload + sizeof(pwospf_lsu_packet_t) + 4 + sizeof(pwospf_ls_advert_t) * i, 4);
                 memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
                 display_ls_advert(ls_advert);
-                dst.subnet = ls_advert->subnet;
-                dst.mask = ls_advert->mask;
-                dst.router_id = ls_advert->router_id;
-                add_neighbor_vertex_t(router, src, dst);
+                subnet_entry = create_subnet_entry_t_advert(ls_advert);
+                add_subnet_entry_t(router, router_entry, subnet_entry);
              }
+             // update vertices
+             update_neighbor_vertex_t(router, router_entry);
              //run Djikstra's algo
              dijkstra(router); 
              //free(lsu_packet);
@@ -143,14 +146,18 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                 intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
                 pthread_mutex_unlock(&intf->neighbor_lock);
                 // check if entry exists in DB
-             	// create src,dst entries
-             	router_entry_t src, dst;
-             	src.subnet = neighbor->ip;
-             	src.mask = neighbor->mask;
-             	src.router_id = neighbor->id;
+                // create router entry
+                router_entry_t router_entry;
+                router_entry.router_id = neighbor->id;
+                router_entry.area_id = 0;
+                //add vertex with router entry info
+                add_neighbor_vertex_t(router, router_entry);
+               //create subnet entry
+                subnet_entry_t* subnet_entry;
+
              	int i;
              	pwospf_ls_advert_t* ls_advert = (pwospf_ls_advert_t*) malloc_or_die(sizeof(pwospf_ls_advert_t));
-             	if(check_neighbor_vertex_t_src_ip(router, neighbor->ip) == 1) {
+             	if(check_neighbor_vertex_t_router_entry_t_id(router, neighbor->id) == 1) {
                    printf(" ** pwospf_lsu_type(..) neighbor already known, checking if any new adverts\n");
                    //neighbor present in db, check if any new adverts
                    for(i = 0; i < ntohl(lsu_packet->no_of_adverts) ; i++) {
@@ -158,51 +165,23 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                       memcpy(&ls_advert->mask, payload + sizeof(pwospf_lsu_packet_t) + 4
  + sizeof(pwospf_ls_advert_t) * i, 4);
                       memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
-                      if(check_neighbor_vertex_t_dst_ip(router, ls_advert->mask) == 0) {
-                         printf(" ** pwospf_lsu_type(..) new advert\n");
-                         // advert not present, add 
                          display_ls_advert(ls_advert);
-                         dst.subnet = ls_advert->subnet;
-                         dst.mask = ls_advert->mask;
-                         dst.router_id = ls_advert->router_id;
-                         add_neighbor_vertex_t(router, src, dst);
-                      }
+                         subnet_entry = create_subnet_entry_t_advert(ls_advert);
+                	 add_subnet_entry_t(router, router_entry, subnet_entry);
                    }    
-                } else {
-                   // not in DB, add to DB
-                   //add adverts to db
-                   printf(" ** pwospf_lsu_type(..) new neighbor, adding adverts to neighbor db\n"); 
-                   for(i = 0; i < ntohl(lsu_packet->no_of_adverts) ; i++) {
-                      memcpy(&ls_advert->subnet, payload + sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_ls_advert_t) * i, 4);
-                      memcpy(&ls_advert->mask, payload + sizeof(pwospf_lsu_packet_t) + 4 + sizeof(pwospf_ls_advert_t) * i, 4);
-                      memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
-                      display_ls_advert(ls_advert);
-                      dst.subnet = ls_advert->subnet;
-                      dst.mask = ls_advert->mask;
-                      dst.router_id = ls_advert->router_id;
-                      add_neighbor_vertex_t(router, src, dst);
-                   }
+                   // update vertices
+             	   update_neighbor_vertex_t(router, router_entry);
+                } 
                   //run Djikstra's algo
                   dijkstra(router);
-                  }
                 } else {
                      printf(" ** pwospf_lsu_type(..) error, content same as previous from this neighbor, only updating time stamp in DB\n");  
                      // update timestamp
-                     router_entry_t src, dst;
-                     src.subnet = neighbor->ip;
-                     src.mask = neighbor->mask;
-          	     src.router_id = neighbor->id;
-                     int i;
-                     pwospf_ls_advert_t* ls_advert = (pwospf_ls_advert_t*) malloc_or_die(sizeof(pwospf_ls_advert_t));
-                     for(i = 0; i < ntohl(lsu_packet->no_of_adverts) ; i++) {
-                      memcpy(&ls_advert->subnet, payload + sizeof(pwospf_lsu_packet_t) + sizeof(pwospf_ls_advert_t) * i, 4);
-                      memcpy(&ls_advert->mask, payload + sizeof(pwospf_lsu_packet_t) + 4 + sizeof(pwospf_ls_advert_t) * i, 4);
-                      memcpy(&ls_advert->router_id, payload + sizeof(pwospf_lsu_packet_t) + 8 + sizeof(pwospf_ls_advert_t) * i, 4);
-                      dst.subnet = ls_advert->subnet;
-                      dst.mask = ls_advert->mask;
-                      dst.router_id = ls_advert->router_id;
-                      update_neighbor_vertex_t_timestamp(router, src, dst);
-                   }
+                     // create router entry
+	             router_entry_t router_entry;
+                     router_entry.router_id = neighbor->id;
+                     router_entry.area_id = 0;
+                     update_neighbor_vertex_t_timestamp(router, router_entry);
 
              }
           } else {

@@ -407,15 +407,6 @@ int display_packet_t(void* data) {
    return 0;
 }
 
-int predicate_neighbor_t(void *listdata, void *neighbor) {
-        neighbor_t *listdata_entry = (neighbor_t*) listdata;
-        neighbor_t *n_test = (neighbor_t*) neighbor;
-        if( listdata_entry->ip ==  n_test->ip)
-           return 1;
-        else
-           return 0;
-}
-
 int predicate_ip_neighbor_t(void *listdata, void *ip) {
         neighbor_t *listdata_entry = (neighbor_t*) listdata;
         addr_ip_t *ip_test = (addr_ip_t*) ip;
@@ -487,34 +478,12 @@ int llist_size(node *head) {
    return count;
 }
 
-int predicate_ip_sort_vertex_t(void* listdata1, void* listdata2) {
-  neighbor_vertex_t *listdata1_vertex = (neighbor_vertex_t*) listdata1;
-  neighbor_vertex_t *listdata2_vertex = (neighbor_vertex_t*) listdata2;
-    if( compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->src.subnet) == 1 ||
-  compare_ip(listdata1_vertex->src.subnet, listdata2_vertex->src.subnet) == 0)
-       return 1;
-    else
-       return 0;
-}
-
-int predicate_vertex_neighbor_vertex_t(void *listdata, void *vertex) {
-        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
-        neighbor_vertex_t *vertex_test = (neighbor_vertex_t*) vertex;
-        if( compare_neighbor_vertex_t(listdata_entry, vertex_test) == 1)
-           return 1;
-        else
-           return 0;
-}
-
 int display_neighbor_vertex_t(void* data) {
    neighbor_vertex_t *entry = (neighbor_vertex_t*) data;
    printf("Timestamp: %ld.%06ld, ", entry->timestamp->tv_sec, entry->timestamp->tv_usec);
-   printf("Src: subnet: %s ", quick_ip_to_string(entry->src.subnet));
-   printf("mask: %s ", quick_ip_to_string(entry->src.mask));
-   printf("router id: %s ", quick_ip_to_string(entry->src.router_id));
-   printf("Dst: subnet: %s ", quick_ip_to_string(entry->dst.subnet));
-   printf("mask: %s ", quick_ip_to_string(entry->dst.mask));
-   printf("router id: %s\n", quick_ip_to_string(entry->dst.router_id));
+   printf("router_entry: id: %s ", quick_ip_to_string(entry->router_entry.router_id));
+   printf("area id: %u\n", entry->router_entry.area_id);
+   llist_display_all(entry->subnets, display_subnet_entry_t);
    return 0;
 }
 
@@ -531,20 +500,10 @@ node* llist_update_sorted_delete(node *head, int(*func)(void*,void*), void *data
    }
 }
 
-int predicate_vertex_src_ip(void *listdata, void *ip) {
+int predicate_vertex_t_router_id(void *listdata, void *data) {
         neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
-        uint32_t *ip_test = (uint32_t*) ip;
-        if( listdata_entry->src.subnet == *ip_test)
-           return 1;
-        else
-           return 0;
-}
-
-int predicate_vertex_dst_ip(void *listdata, void *ip) {
-        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
-        uint32_t *ip_test = (uint32_t*) ip;
-        *ip_test = *ip_test & listdata_entry->dst.mask;
-        if( listdata_entry->dst.subnet == *ip_test)
+        neighbor_vertex_t *data_entry = (neighbor_vertex_t*) data;
+        if( listdata_entry->router_entry.router_id == data_entry->router_entry.router_id)
            return 1;
         else
            return 0;
@@ -573,4 +532,59 @@ void llist_display_all_predicate(node* Head, int(*func)(void*), int(*func2)(void
            cur_ptr = cur_ptr->next;
        }
    }
+}
+
+int predicate_vertex_router_id(void *listdata, void *id) {
+        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
+        uint32_t *id_test = (uint32_t*) id;
+        if( listdata_entry->router_entry.router_id == *id_test)
+           return 1;
+        else
+           return 0;
+}
+
+int predicate_subnet_entry_subnet(void *listdata, void *subnet) {
+        subnet_entry_t *listdata_entry = (subnet_entry_t*) listdata;
+        uint32_t *subnet_test = (uint32_t*) subnet;
+        uint32_t subnet_test_var = *subnet_test;
+        subnet_test_var = subnet_test_var & listdata_entry->mask;
+        if( listdata_entry->subnet == subnet_test_var && listdata_entry->mask != 0)
+           return 1;
+        else
+           return 0;
+}
+
+int display_subnet_entry_t(void* data) {
+   subnet_entry_t *entry = (subnet_entry_t*) data;
+   printf("subnet: %s ", quick_ip_to_string(entry->subnet));
+   printf("mask: %s ", quick_ip_to_string(entry->mask));
+   printf("router id: %s\n", quick_ip_to_string(entry->router_id));
+   return 0;
+}
+
+int predicate_neighbor_t(void *listdata, void *neighbor) {
+        neighbor_t *listdata_entry = (neighbor_t*) listdata;
+        neighbor_t *n_test = (neighbor_t*) neighbor;
+        if( listdata_entry->ip ==  n_test->ip)
+           return 1;
+        else
+           return 0;
+}
+
+int predicate_subnet_entry(void *listdata, void *subnet_entry) {
+        subnet_entry_t *listdata_entry = (subnet_entry_t*) listdata;
+        subnet_entry_t *subnet_test = (subnet_entry_t*) subnet_entry;
+        if( listdata_entry->subnet == subnet_test->subnet)
+           return 1;
+        else
+           return 0;
+}
+
+int predicate_vertex_t(void *listdata, void *vertex) {
+        neighbor_vertex_t *listdata_entry = (neighbor_vertex_t*) listdata;
+        neighbor_vertex_t *vertex_test = (neighbor_vertex_t*) vertex;
+        if( listdata_entry->router_entry.router_id == vertex_test->router_entry.router_id)
+           return 1;
+        else
+           return 0;
 }
