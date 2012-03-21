@@ -233,6 +233,9 @@ void ip_look_up(byte* ip_packet, struct ip* ip_header) {
    memcpy(&dst_ip, &ip_header->ip_dst, 4);
    // look up in routing table
    route_info_t route_info = rrtable_find_route(subsystem->rtable, dst_ip);
+   if(route_info.intf == NULL) {
+      printf(" ** ip_lookup(..) Error! No route found \n");
+   } else {
    // display output interface
    printf(" ** ip_lookup(..) output interface for ip: %s\n", quick_ip_to_string(dst_ip));
    display_interface(route_info.intf);
@@ -262,6 +265,7 @@ void ip_look_up(byte* ip_packet, struct ip* ip_header) {
       // make new ip packet
       send_ip_packet(ip_packet, ip_header_ttl, route_info);
 
+   }
    }
 }
 
@@ -331,6 +335,9 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
    memcpy(&dst_ip, &ip_header->ip_dst, 4);
    // look up in routing table
    route_info_t route_info = rrtable_find_route(subsystem->rtable, dst_ip);
+   if(route_info.intf == NULL) {
+      printf(" ** ip_lookup_reply(..)  Error! No route found \n");
+   } else {
    // display output interface
    printf(" ** ip_lookup_reply(..) output interface for ip: %s\n", quick_ip_to_string(dst_ip));
    display_interface(route_info.intf);
@@ -375,6 +382,7 @@ void ip_look_up_reply(byte* ip_packet, struct ip* ip_header, interface_t* intf) 
          // make new ip packet
          send_ip_packet(ip_packet, ip_header_ttl, route_info);
       }
+   }
    }
 }
 

@@ -52,6 +52,7 @@ void rrtable_destroy(rtable_t *rtable){
  */
 route_info_t rrtable_find_route(rtable_t *rtable, uint32_t dest_ip) {
    printf(" ** rrtable_find_route(..) called \n");
+   route_info_t route_info;
    // display current state of routing table
    printf(" ** rrtable_find_route(..) routing table state:\n");
    llist_display_all(rtable->rtable_list, display_route_t);
@@ -59,13 +60,18 @@ route_info_t rrtable_find_route(rtable_t *rtable, uint32_t dest_ip) {
    pthread_mutex_lock(&rtable->lock_rtable);
    // get route from table
    node* ret = llist_find(rtable->rtable_list, predicate_ip_route_t_prefix_match, (void*) &dest_ip);
-   route_t* route = (route_t*) ret->data;
    // unblock table
    pthread_mutex_unlock(&rtable->lock_rtable);
-   route_info_t route_info;
-   route_info.ip = route->next_hop;
-   route_info.mask = route->subnet_mask;
-   route_info.intf = &route->intf;
+   if( ret!= NULL) {
+      route_t* route = (route_t*) ret->data;
+      route_info.ip = route->next_hop;
+      route_info.mask = route->subnet_mask;
+      route_info.intf = &route->intf;
+   } else {
+      route_info.ip = 0;
+      route_info.mask = 0;
+      route_info.intf = NULL;
+   }
    return route_info;
 }
 
