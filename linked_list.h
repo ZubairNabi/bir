@@ -55,3 +55,4 @@ int display_subnet_entry_t(void* data);
 int predicate_neighbor_t(void *listdata, void *neighbor);
 int predicate_subnet_entry(void *listdata, void *subnet_entry);
 int predicate_vertex_t(void *listdata, void *vertex);
+int predicate_route_t_type(void *listdata, void *type);

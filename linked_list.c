@@ -588,3 +588,13 @@ int predicate_vertex_t(void *listdata, void *vertex) {
         else
            return 0;
 }
+
+int predicate_route_t_type(void *listdata, void *type) {
+        route_t *listdata_entry = (route_t*) listdata;
+        char *type_test = (char*) type;
+        if( listdata_entry->type == *type_test)
+           return 1;
+        else
+           return 0;
+}
+

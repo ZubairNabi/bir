@@ -258,3 +258,16 @@ void rrtable_read_hw() {
 #endif   
 
 }
+
+void rrtable_purge_all_type( rtable_t* rtable, char type ) {
+   printf(" ** rrtable_purge_all_type(..) called \n");
+   // lock table
+   pthread_mutex_lock(&rtable->lock_rtable);
+   // remove route from table
+   rtable->rtable_list = llist_remove_all_no_count(rtable->rtable_list, predicate_route_t_type, (void*) &type);
+   // unlock table
+   pthread_mutex_unlock(&rtable->lock_rtable);
+   // write to hw
+   rrtable_write_hw();
+}
+
