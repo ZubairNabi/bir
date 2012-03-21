@@ -44,7 +44,7 @@ void pwospf_hello_type(struct ip* ip_header, byte* payload, uint16_t payload_len
          // lock neighbor list
          pthread_mutex_lock(&intf->neighbor_lock);
          // if exists, then update, otherwise add
-         intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_ip_neighbor_t, (void*) neighbor);
+         intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_neighbor_t, (void*) neighbor);
          pthread_mutex_unlock(&intf->neighbor_lock);
       }
       // update info in neighbor db

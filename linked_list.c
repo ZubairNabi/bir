@@ -407,6 +407,15 @@ int display_packet_t(void* data) {
    return 0;
 }
 
+int predicate_neighbor_t(void *listdata, void *neighbor) {
+        neighbor_t *listdata_entry = (neighbor_t*) listdata;
+        neighbor_t *n_test = (neighbor_t*) neighbor;
+        if( listdata_entry->ip ==  n_test->ip)
+           return 1;
+        else
+           return 0;
+}
+
 int predicate_ip_neighbor_t(void *listdata, void *ip) {
         neighbor_t *listdata_entry = (neighbor_t*) listdata;
         addr_ip_t *ip_test = (addr_ip_t*) ip;
