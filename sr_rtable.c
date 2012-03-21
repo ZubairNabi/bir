@@ -243,6 +243,9 @@ void rrtable_read_hw() {
         readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, &next_hop);
         readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, &mask);
         readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, &hw_port);
+        //check for blank entries
+        if(destination == 0)
+           break;
         // get interface for hw port
         intf = get_hw_intf(hw_port);
         asprintf(&str, "%s, ", quick_ip_to_string(htonl(destination)));

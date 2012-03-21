@@ -39,9 +39,6 @@ interface_t set_interface(struct sr_vns_if* vns_intf, int intf_num) {
 void interface_init(struct sr_router* subsystem) {
    printf(" ** interface_init(..) called \n");
    subsystem->num_interfaces = 0;
-#ifdef _CPUMODE_
-   sr_cpu_init_interface_socket(subsystem);
-#endif
 }
 
 interface_t make_interface(char* name, addr_mac_t mac, addr_ip_t ip, bool enabled, addr_ip_t subnet_mask) {
@@ -220,17 +217,17 @@ void write_interface_hw(struct sr_router* subsystem) {
    writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, subsystem->num_interfaces);
    if(subsystem->num_interfaces == 0) {
        //IMP: MAC addresses are already in host order
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_HI, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_LO, mac_lo);
    } else if(subsystem->num_interfaces == 1) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_1_HI, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_1_LO, mac_lo);
    } else if(subsystem->num_interfaces == 2) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_2_HI, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_2_LO, mac_lo);
    } else if(subsystem->num_interfaces == 3) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_3_HI, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_3_LO, mac_lo);
        // last interface
        //add allspfrouters ip
        int i = subsystem->num_interfaces + 1;
@@ -277,40 +274,43 @@ void read_interface_hw() {
    struct sr_instance* sr_inst = get_sr();
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
    char *str;
-   int i;
-   unsigned int mac_hi = 0, mac_lo = 0;
+   unsigned int mac[2];
    uint32_t ip;
-   addr_mac_t mac;
+   int i;
    // show interface names and mac addresses
    asprintf(&str, "Name, MAC\n"); 
    cli_send_str(str);
    free(str);
    // read hi, lo mac for eth0
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_HI, &mac_hi);
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_0_HI, &mac_hi);
-   mac = get_mac_from_hi_lo(&mac_hi, &mac_lo); 
-   asprintf(&str, "%s, %s\n", "eth0",  quick_mac_to_string(mac.octet));
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_0_HI, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_0_LO, &mac[1]);
+   mac[0] = htonl(mac[0]);
+   mac[1] = htonl(mac[1]);
+   asprintf(&str, "%s, %s\n", "eth0",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
     // read hi, lo mac for eth1
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_HI, &mac_hi);
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_1_HI, &mac_hi);
-   mac = get_mac_from_hi_lo(&mac_hi, &mac_lo);
-   asprintf(&str, "%s, %s\n", "eth1",  quick_mac_to_string(mac.octet));
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_1_HI, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_1_LO, &mac[1]);
+   mac[0] = htonl(mac[0]);
+   mac[1] = htonl(mac[1]);
+   asprintf(&str, "%s, %s\n", "eth1",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
     // read hi, lo mac for eth2
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_HI, &mac_hi);
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_2_HI, &mac_hi);
-   mac = get_mac_from_hi_lo(&mac_hi, &mac_lo);
-   asprintf(&str, "%s, %s\n", "eth2",  quick_mac_to_string(mac.octet));
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_2_HI, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_2_LO, &mac[1]);
+   mac[0] = htonl(mac[0]);
+   mac[1] = htonl(mac[1]);
+   asprintf(&str, "%s, %s\n", "eth2",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
     // read hi, lo mac for eth3
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_HI, &mac_hi);
-   readReg(&router->hw_device, ROUTER_OP_LUT_DEFAULT_MAC_3_HI, &mac_hi);
-   mac = get_mac_from_hi_lo(&mac_hi, &mac_lo);
-   asprintf(&str, "%s, %s\n", "eth3",  quick_mac_to_string(mac.octet));
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_3_HI, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_3_LO, &mac[1]);
+   mac[0] = htonl(mac[0]);
+   mac[1] = htonl(mac[1]);
+   asprintf(&str, "%s, %s\n", "eth3",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
    // read ip filter table
@@ -323,16 +323,12 @@ void read_interface_hw() {
         // read value
         readReg(&router->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, &ip);
         ip = htonl(ip);
+        //check for blank entries
+        if( ip == 0)
+           break;
         asprintf(&str, "%s\n",  quick_ip_to_string(ip));
         cli_send_str(str);
         free(str);
     } 
 #endif
-}
-
-addr_mac_t get_mac_from_hi_lo(uint32_t* hi, uint32_t* lo) {
-   addr_mac_t *mac = (addr_mac_t*) malloc_or_die(sizeof(addr_mac_t));
-   memcpy(mac, hi + 2, 2);
-   memcpy(mac + 2, lo, 4);
-   return *mac;
 }

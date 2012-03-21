@@ -74,6 +74,4 @@ interface_t get_hw_intf(int hw_port);
 
 void read_interface_hw();
 
-addr_mac_t get_mac_from_hi_lo(uint32_t* hi, uint32_t* lo);
-
 #endif /* SR_INTERFACE_H */

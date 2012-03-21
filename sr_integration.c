@@ -107,6 +107,10 @@ void sr_integ_hw_setup(struct sr_instance* sr)
     // display initial state of neighbor db
     printf(" ** sr_integ_hw(..) initial state of neighbor db\n");
     display_neighbor_vertices(subsystem);
+    // get hardware fds for each hw interface
+    #ifdef _CPUMODE_
+    sr_cpu_init_interface_socket(subsystem);
+    #endif
 } /* -- sr_integ_hw_setup -- */
 
 /*---------------------------------------------------------------------

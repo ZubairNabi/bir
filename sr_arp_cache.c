@@ -415,6 +415,8 @@ void arp_write_hw() {
    pthread_mutex_lock(&router->arp_cache->lock_static);
       static_head = router->arp_cache->arp_static_cache_list;
       while(static_head != NULL && i < ROUTER_OP_LUT_ARP_TABLE_DEPTH) {
+         mac_hi = 0;
+         mac_lo = 0;
          cache_entry = (arp_cache_entry_t*) static_head->data;
          mac_hi |= ((unsigned int)cache_entry->mac.octet[0]) << 8;
          mac_hi |= ((unsigned int)cache_entry->mac.octet[1]);
@@ -437,6 +439,8 @@ void arp_write_hw() {
     pthread_mutex_lock(&router->arp_cache->lock_dynamic);
       dynamic_head = router->arp_cache->arp_cache_list;
       while(dynamic_head != NULL && i < ROUTER_OP_LUT_ARP_TABLE_DEPTH) {
+         mac_hi = 0;
+         mac_lo = 0;
          cache_entry = (arp_cache_entry_t*) dynamic_head->data;
          mac_hi |= ((unsigned int)cache_entry->mac.octet[0]) << 8;
          mac_hi |= ((unsigned int)cache_entry->mac.octet[1]);
@@ -465,24 +469,28 @@ void arp_read_hw() {
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
    char *str;
    int i;
-   unsigned int mac_hi = 0, mac_lo = 0;
+   unsigned int mac[2];
    uint32_t ip;
-   addr_mac_t mac;
-   asprintf(&str, " MAC, IP\n");
-   cli_send_str(str);
-   free(str);
-   for (i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
+   for (i = 0; i < ROUTER_OP_LUT_ARP_TABLE_DEPTH; i++) {
+       mac[0] = 0;
+       mac[1] = 0;
        // write table index to read register   
        writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_RD_ADDR, i);
        // read mac hi, lo
-       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, &mac_lo);
-       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, &mac_hi);
-       //convert to mac 
-       mac = get_mac_from_hi_lo(&mac_hi, &mac_lo);
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, &mac[1]);
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, &mac[2]);
+       mac[0] = htonl(mac[0]);
+       mac[1] = htonl(mac[1]);
        // read ip
        readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, &ip);
        ip = htonl(ip);
-       asprintf(&str, "%s, %s\n", quick_mac_to_string(mac.octet), quick_ip_to_string(ip));
+       // check for blank entries
+       if (ip == 0)
+          break;
+       asprintf(&str, "MAC, IP\n");
+       cli_send_str(str);
+       free(str);
+       asprintf(&str, "%s, %s\n", quick_mac_to_string(((uint8_t*)mac) + 2), quick_ip_to_string(ip));
        cli_send_str(str);
        free(str);
    }
