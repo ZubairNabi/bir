@@ -2,6 +2,7 @@
 #include "cli/helper.h"
 #include "sr_integration.h"
 #include "cli/cli.h"
+#include "lwtcp/lwip/sys.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -13,6 +14,10 @@ void neighbor_db_init(sr_router* router) {
    pthread_mutex_init(&router->neighbor_db->neighbor_db_lock, NULL);
    // now add interfaces and static entries to db
    neighbor_db_add_interfaces_static(router);
+   // start time out thread
+   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+   sys_thread_new(remove_timed_out_routers, (void*) router);
 }
 
 void neighbor_db_add_interfaces_static(sr_router* router) {
@@ -286,3 +291,32 @@ void add_interfaces_to_rtable(sr_router* router) {
       rrtable_route_add(router->rtable, router->interface[i].ip, make_ip_addr("0.0.0.0"), router->interface[i].subnet_mask, &router->interface[i], 'd');
    }
 }
+
+void remove_timed_out_routers(void* input) {
+   printf(" ** remove timed out routers thread called\n");
+   sr_router* router = (sr_router*) input;
+   struct timespec *timeout =(struct timespec*) malloc_or_die(sizeof(struct timespec));
+   struct timespec *timeout_rem =(struct timespec*) malloc_or_die(sizeof(struct timespec));
+   timeout->tv_sec = (time_t) PWOSPF_LSU_TIMEOUT;
+   timeout->tv_nsec = 0;
+   while(1) {
+      // sleep for interval
+      nanosleep(timeout, timeout_rem);
+      printf(" ** remove timed out routers thread awoken\n");
+      if(router->ospf_status == TRUE) {
+      	// get current time
+      	struct timeval *current_time = (struct timeval*)malloc_or_die(sizeof(struct timeval));
+      	gettimeofday(current_time, NULL);
+      	// remove timed out entries from neighbors list
+      	// lock list
+      	pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+      	// remove all timed out 
+      	if(current_time == NULL)
+        	 printf("Current time is null\n");
+      	router->neighbor_db->neighbor_db_list = llist_remove_all_no_count_3(router->neighbor_db->neighbor_db_list, predicate_timeval_vertex_t, (void*)current_time, (void*) &router->ls_info.router_id);
+      	// unlock list
+      	pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+      }
+   }
+}
+

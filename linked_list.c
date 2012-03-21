@@ -598,3 +598,49 @@ int predicate_route_t_type(void *listdata, void *type) {
            return 0;
 }
 
+int predicate_timeval_vertex_t(void* item, void* time, void* router_id) {
+   neighbor_vertex_t *entry = (neighbor_vertex_t*) item;
+   uint32_t* rid = (uint32_t*) router_id;
+   struct timeval *time_test = (struct timeval*) time;
+   //Also check that the router entry is not for this router
+   if(is_later(time_test, entry->timestamp) == TRUE && entry->router_entry.router_id != *rid)
+        return 1;
+   else
+        return 0;
+}
+
+node* llist_remove_all_no_count_3(node* Head, int(*func)(void*,void*, void*), void* num, void* arg) {
+   node *prev_ptr, *cur_ptr;
+   bool found = FALSE;
+   cur_ptr = Head;
+   while(cur_ptr != NULL) {
+
+      if(func(cur_ptr->data, num, arg) == 1) {
+         found = TRUE;
+
+         if(cur_ptr==Head) {
+           printf("head!\n");
+            Head=cur_ptr->next;
+            free(cur_ptr);
+            if(cur_ptr->next == NULL)
+               return NULL;
+            cur_ptr = Head;
+
+         } else {
+            prev_ptr->next=cur_ptr->next;
+            free(cur_ptr);
+            cur_ptr = Head;
+
+         }
+      }
+      else {
+
+         prev_ptr=cur_ptr;
+         cur_ptr=cur_ptr->next;
+      }
+   }
+   if(found == FALSE)
+      printf("Not found\n");
+   return Head;
+}
+
