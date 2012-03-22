@@ -282,6 +282,18 @@ void pwospf_flood_lsu(struct ip* ip_header, pwospf_header_t* pwospf_header, pwos
    ttl = ttl - 1;
    ttl = ntohs(ttl);
    lsu_packet->ttl = ttl;
+   pwospf_header->checksum = 0;
+   uint16_t pwospf_packet_len = pwospf_header->len;
+   // correct order
+   pwospf_header->len = htons(pwospf_header->len);
+   // generate raw packet 
+   byte* pwospf_packet = (byte*) malloc_or_die(pwospf_packet_len);
+   memcpy(pwospf_packet, pwospf_header, sizeof(pwospf_header_t));
+   memcpy(pwospf_packet + sizeof(pwospf_header_t), lsu_packet, pwospf_packet_len - sizeof(pwospf_header_t));
+   printf(" ** pwospf_flood_lsu(..) pwospf packet with len %u generated \n", pwospf_packet_len);
+   // generate checksum
+   pwospf_header->checksum = htons(htons(inet_chksum((void*) pwospf_packet, pwospf_packet_len)));
+   memcpy(pwospf_packet, pwospf_header, sizeof(pwospf_header_t));
    // check if ttl expired
    if(lsu_packet->ttl < 1) {
       printf(" ** pwospf_flood_lsu(..) ttl expired, not flooding\n");
@@ -310,8 +322,7 @@ void pwospf_flood_lsu(struct ip* ip_header, pwospf_header_t* pwospf_header, pwos
                   ip_header->ip_id = htons((ip_header->ip_id));
                   ip_header->ip_sum = htons((ip_header->ip_sum));
                   memcpy(ip_packet, ip_header, ip_header->ip_hl * 4);
-                  memcpy(ip_packet + ip_header->ip_hl * 4, pwospf_header, sizeof(pwospf_header_t));
-                  memcpy(ip_packet + ip_header->ip_hl * 4 + sizeof(pwospf_header_t), lsu_packet, sizeof(pwospf_lsu_packet_t));
+                  memcpy(ip_packet + ip_header->ip_hl * 4, pwospf_packet, pwospf_packet_len);
                   ip_look_up_reply(ip_packet, ip_header, intf);
                }
 
