@@ -651,3 +651,12 @@ int predicate_dijkstra_list_data_t(void *listdata, void *data) {
            return 0;
 }
 
+int predicate_id_neighbor_t_neighbor_t(void *listdata, void *neighbor) {
+        neighbor_t *listdata_entry = (neighbor_t*) listdata;
+        neighbor_t *test_neighbor = (neighbor_t*) neighbor;
+        if( listdata_entry->id ==  test_neighbor->id)
+           return 1;
+        else
+           return 0;
+}
+

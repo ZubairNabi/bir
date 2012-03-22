@@ -92,7 +92,7 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              memcpy(neighbor->last_adverts, payload + 8, payload_len - 8);
              // add to list
              pthread_mutex_lock(&intf->neighbor_lock);  
-             intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
+             intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t_neighbor_t, (void*) neighbor);
              pthread_mutex_unlock(&intf->neighbor_lock);
              display_neighbor_t((void*) neighbor);
              // create router entry
@@ -144,7 +144,7 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                 neighbor->last_lsu_packet = *lsu_packet;
                 // update packet info in neighbor list
                 pthread_mutex_lock(&intf->neighbor_lock);
-                intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t, (void*) neighbor);
+                intf->neighbor_list = llist_update_beginning_delete(intf->neighbor_list, predicate_id_neighbor_t_neighbor_t, (void*) neighbor);
                 pthread_mutex_unlock(&intf->neighbor_lock);
                 // check if entry exists in DB
                 // create router entry
