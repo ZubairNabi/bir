@@ -10,6 +10,7 @@
 #include "sr_neighbor.h"
 #include "sr_pwospf_types.h"
 #include "sr_neighbor_db.h"
+#include "sr_dijkstra.h"
 
 node *llist_new() {
    node* head = NULL;
@@ -639,5 +640,14 @@ node* llist_remove_all_no_count_3(node* Head, int(*func)(void*,void*, void*), vo
    if(found == FALSE)
       printf("Not found\n");
    return Head;
+}
+
+int predicate_dijkstra_list_data_t(void *listdata, void *data) {
+        dijkstra_list_data_t *listdata_entry = (dijkstra_list_data_t*) listdata;
+        dijkstra_list_data_t *data_test = (dijkstra_list_data_t*) data;
+        if( listdata_entry->destination->router_entry.router_id == data_test->destination->router_entry.router_id)
+           return 1;
+        else
+           return 0;
 }
 

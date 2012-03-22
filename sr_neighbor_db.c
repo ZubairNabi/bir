@@ -331,3 +331,14 @@ neighbor_vertex_t* find_self(sr_router* router) {
    }
    return NULL;
 }
+
+neighbor_vertex_t* find_vertex(sr_router* router, uint32_t id) {
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   node *ret = llist_find(router->neighbor_db->neighbor_db_list, predicate_vertex_router_id, (void*) &id);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   if(ret != NULL) {
+      neighbor_vertex_t* vertex = ret->data;
+      return vertex;
+   }
+   return NULL;
+}
