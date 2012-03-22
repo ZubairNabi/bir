@@ -342,3 +342,17 @@ neighbor_vertex_t* find_vertex(sr_router* router, uint32_t id) {
    }
    return NULL;
 }
+
+void refresh_neighbor_vertex_t(sr_router* router, router_entry_t r_entry) {
+   printf(" ** refresh_neighbor_vertex_t(..) called\n");
+   neighbor_vertex_t* temp_vertex;
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   node* ret = llist_find(router->neighbor_db->neighbor_db_list, predicate_vertex_router_id, (void*) &r_entry.router_id);
+   if( ret!= NULL) {
+      temp_vertex = ret->data;
+      gettimeofday(temp_vertex->timestamp, NULL);
+      temp_vertex->subnets = llist_delete_no_count(temp_vertex->subnets);
+      router->neighbor_db->neighbor_db_list = llist_update_beginning_delete(router->neighbor_db->neighbor_db_list, predicate_vertex_t, (void*) temp_vertex);
+   }
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+}

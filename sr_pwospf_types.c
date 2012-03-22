@@ -153,8 +153,8 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                 router_entry_t router_entry;
                 router_entry.router_id = neighbor->id;
                 router_entry.area_id = 0;
-                //add vertex with router entry info
-                add_neighbor_vertex_t(router, router_entry);
+                //refresh vertex with router entry info, clear previous subnets
+                refresh_neighbor_vertex_t(router, router_entry);
                //create subnet entry
                 subnet_entry_t* subnet_entry;
 

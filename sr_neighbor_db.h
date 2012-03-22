@@ -73,3 +73,5 @@ void remove_timed_out_routers(void* input);
 neighbor_vertex_t* find_self(sr_router* router);
 
 neighbor_vertex_t* find_vertex(sr_router* router, uint32_t id);
+
+void refresh_neighbor_vertex_t(sr_router* router, router_entry_t r_entry);
