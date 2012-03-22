@@ -26,5 +26,9 @@ void add_neighbor(interface_t* intf, uint32_t id, addr_ip_t ip, uint16_t helloin
 
 neighbor_t* make_neighbor_lsu(uint32_t id, addr_ip_t ip, uint16_t helloint, addr_ip_t mask, pwospf_lsu_packet_t lsu_packet, byte* adverts);
 
+interface_t* get_interface_from_ip(sr_router* router, uint32_t ip);
+
+interface_t* get_interface_from_id(sr_router* router, uint32_t id);
+
 
 #endif

@@ -36,3 +36,36 @@ neighbor_t* make_neighbor_lsu(uint32_t id, addr_ip_t ip, uint16_t helloint, addr
    return neighbor;
 }
 
+interface_t* get_interface_from_id(sr_router* router, uint32_t id) {
+   int i;
+   node* ret;
+   neighbor_t* neighbor;
+   for( i = 0; i < router->num_interfaces ; i++) {
+      pthread_mutex_lock(&router->interface[i].neighbor_lock);      
+      ret = llist_find(router->interface[i].neighbor_list, predicate_id_neighbor_t, (void*) &id);
+      pthread_mutex_unlock(&router->interface[i].neighbor_lock);
+      if( ret!= NULL) {
+         neighbor = (neighbor_t*) ret->data;   
+         if(neighbor->id == id)
+            return &router->interface[i];
+      }
+   } 
+   return NULL;
+}
+
+interface_t* get_interface_from_ip(sr_router* router, uint32_t ip) {
+   int i;
+   node* ret;
+   neighbor_t* neighbor;
+   for( i = 0; i < router->num_interfaces ; i++) {
+      pthread_mutex_lock(&router->interface[i].neighbor_lock);
+      ret = llist_find(router->interface[i].neighbor_list, predicate_ip_neighbor_t, (void*) &ip);
+      pthread_mutex_unlock(&router->interface[i].neighbor_lock);
+      if( ret!= NULL) {
+         neighbor = (neighbor_t*) ret->data;
+         if(neighbor->ip == ip)
+            return &router->interface[i];
+      }
+   }
+   return NULL;
+}
