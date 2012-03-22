@@ -602,6 +602,8 @@ int predicate_timeval_vertex_t(void* item, void* time, void* router_id) {
    neighbor_vertex_t *entry = (neighbor_vertex_t*) item;
    uint32_t* rid = (uint32_t*) router_id;
    struct timeval *time_test = (struct timeval*) time;
+   int lsu_timeout = PWOSPF_LSU_TIMEOUT;
+   time_test->tv_sec = time_test->tv_sec - (lsu_timeout);
    //Also check that the router entry is not for this router
    if(is_later(time_test, entry->timestamp) == TRUE && entry->router_entry.router_id != *rid)
         return 1;
@@ -614,10 +616,8 @@ node* llist_remove_all_no_count_3(node* Head, int(*func)(void*,void*, void*), vo
    bool found = FALSE;
    cur_ptr = Head;
    while(cur_ptr != NULL) {
-
       if(func(cur_ptr->data, num, arg) == 1) {
          found = TRUE;
-
          if(cur_ptr==Head) {
            printf("head!\n");
             Head=cur_ptr->next;
@@ -625,16 +625,13 @@ node* llist_remove_all_no_count_3(node* Head, int(*func)(void*,void*, void*), vo
             if(cur_ptr->next == NULL)
                return NULL;
             cur_ptr = Head;
-
          } else {
             prev_ptr->next=cur_ptr->next;
             free(cur_ptr);
             cur_ptr = Head;
-
          }
       }
       else {
-
          prev_ptr=cur_ptr;
          cur_ptr=cur_ptr->next;
       }
