@@ -603,10 +603,11 @@ int predicate_timeval_vertex_t(void* item, void* time, void* router_id) {
    neighbor_vertex_t *entry = (neighbor_vertex_t*) item;
    uint32_t* rid = (uint32_t*) router_id;
    struct timeval *time_test = (struct timeval*) time;
+   struct timeval time_test_var = *time_test;
    int lsu_timeout = PWOSPF_LSU_TIMEOUT;
-   time_test->tv_sec = time_test->tv_sec - (lsu_timeout);
+   time_test_var.tv_sec = time_test_var.tv_sec - (lsu_timeout);
    //Also check that the router entry is not for this router
-   if(is_later(time_test, entry->timestamp) == TRUE && entry->router_entry.router_id != *rid)
+   if(is_later(&time_test_var, entry->timestamp) == TRUE && entry->router_entry.router_id != *rid)
         return 1;
    else
         return 0;

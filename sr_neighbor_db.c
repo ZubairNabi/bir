@@ -297,7 +297,7 @@ void remove_timed_out_routers(void* input) {
    sr_router* router = (sr_router*) input;
    struct timespec *timeout =(struct timespec*) malloc_or_die(sizeof(struct timespec));
    struct timespec *timeout_rem =(struct timespec*) malloc_or_die(sizeof(struct timespec));
-   timeout->tv_sec = (time_t) PWOSPF_LSU_INTERVAL;
+   timeout->tv_sec = (time_t) 10;
    timeout->tv_nsec = 0;
    while(1) {
       // sleep for interval
