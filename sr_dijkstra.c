@@ -89,9 +89,10 @@ void dijkstra2(sr_router* router) {
    // delete all dynamic entries
    rrtable_purge_all_type(router->rtable, 'd'); 
    int i;
-   node *head, *head_subnets;
-   neighbor_vertex_t* vertex;
-   subnet_entry_t* subnet_entry;
+   node *head, *head_subnets, *head_subnets_shortest, *head_shortest;
+   neighbor_vertex_t* vertex, *vertex_shortest;
+   subnet_entry_t* subnet_entry, *subnet_entry_shortest;
+   bool flag_shortest = FALSE;
    for( i = 0; i < router->num_interfaces; i++) {
       //also add as dynamic entries to routing table
       rrtable_route_add(router->rtable, router->interface[i].ip, make_ip_addr("0.0.0.0"), router->interface[i].subnet_mask, &router->interface[i], 'd');
@@ -105,6 +106,7 @@ void dijkstra2(sr_router* router) {
       // now traverse subnets
          head_subnets = vertex->subnets;
          while (head_subnets!= NULL) {
+            flag_shortest = FALSE;
             subnet_entry = (subnet_entry_t*) head_subnets->data;
             if(llist_exists(router->rtable->rtable_list, predicate_ip_route_t, (void*) &subnet_entry->subnet) == 0) {
                printf("subnet%s\n", quick_ip_to_string(subnet_entry->subnet));
@@ -112,7 +114,27 @@ void dijkstra2(sr_router* router) {
                printf("mask%s\n", quick_ip_to_string(subnet_entry->mask));
                interface_t* intf = get_interface_from_ip(router, vertex->router_entry.router_id);
                printf("intf %s\n" , intf->name);
-               rrtable_route_add(router->rtable, subnet_entry->subnet, vertex->router_entry.router_id, subnet_entry->mask, get_interface_from_ip(router, vertex->router_entry.router_id),'d');
+               // check if shortest hop 
+               // this would be when no other router has that subnet directly
+               head_shortest = router->neighbor_db->neighbor_db_list;
+               while( head_shortest!= NULL) {
+                  vertex_shortest = (neighbor_vertex_t*) head_shortest->data;
+                  // make sure that not same router or self router
+                  if(vertex_shortest->router_entry.router_id != router->ls_info.router_id && vertex_shortest->router_entry.router_id != vertex->router_entry.router_id) { 
+                     head_subnets_shortest = vertex->subnets;
+                     while(head_subnets_shortest != NULL) {
+                        subnet_entry_shortest = (subnet_entry_t*) head_subnets_shortest->data; 
+                        if((subnet_entry_shortest->router_id & subnet_entry->mask) == subnet_entry->subnet) {
+                           flag_shortest = TRUE;
+                        }
+                        head_subnets_shortest = head_subnets_shortest->next;
+                     }
+                  }
+                  head_shortest = head_shortest->next;
+               }
+               if(flag_shortest == FALSE) {
+                  rrtable_route_add(router->rtable, subnet_entry->subnet, vertex->router_entry.router_id, subnet_entry->mask, get_interface_from_ip(router, vertex->router_entry.router_id),'d');
+               }
             }
             head_subnets = head_subnets->next;
          }
