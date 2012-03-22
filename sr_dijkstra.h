@@ -10,3 +10,5 @@ typedef struct dijkstra_list_data_t {
 } dijkstra_list_data_t;
 
 void dijkstra(sr_router* router);
+
+void dijkstra2(sr_router* router);
