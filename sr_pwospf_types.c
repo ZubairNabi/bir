@@ -133,6 +133,7 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              // check if content the same
              if(strcmp((char*) neighbor->last_adverts, (char*) (payload + 8)) != 0) {
                 // nope new content
+                printf(" ** pwospf_lsu_type(..) new content neighbor db\n");
                 if(ntohl(neighbor->last_lsu_packet.no_of_adverts) != ntohl(lsu_packet->no_of_adverts)) {
                    // free mem, as new adverts might need different memory
                    free(neighbor->last_adverts);
