@@ -69,3 +69,5 @@ void update_neighbor_vertex_t(sr_router* router, router_entry_t r_entry);
 void add_interfaces_to_rtable(sr_router* router);
 
 void remove_timed_out_routers(void* input);
+
+neighbor_vertex_t* find_self(sr_router* router);

@@ -320,3 +320,14 @@ void remove_timed_out_routers(void* input) {
    }
 }
 
+neighbor_vertex_t* find_self(sr_router* router) {
+   pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
+   // first find src vertex
+   node *ret = llist_find(router->neighbor_db->neighbor_db_list, predicate_vertex_router_id, (void*) &router->ls_info.router_id);
+   pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+   if(ret != NULL) {
+      neighbor_vertex_t* vertex = ret->data;
+      return vertex;
+   }
+   return NULL;
+}
