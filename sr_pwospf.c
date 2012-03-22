@@ -57,7 +57,7 @@ void pwospf_handle_packet(byte* pwospf_packet,
 }
 
 void display_pwospf_header(pwospf_header_t* header) {
-   printf(" ** version: %u, type: %u,  len: %u, router id: %lu, area id: %lu, checksum: %u,  au type: %u, authentication: %lu\n", header->version, header->type, header->len, header->router_id, header->area_id, header->checksum, header->au_type, header->authentication);
+   printf(" ** version: %u, type: %u,  len: %u, router id: %s, area id: %lu, checksum: %u,  au type: %u, authentication: %lu\n", header->version, header->type, header->len, quick_ip_to_string(header->router_id), header->area_id, header->checksum, header->au_type, header->authentication);
 }
 
 bool check_pwospf_header(pwospf_header_t* header, byte* pwospf_packet, uint16_t packet_len, sr_router* router) {
