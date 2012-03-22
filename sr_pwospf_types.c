@@ -131,7 +131,9 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              // flood to all neighbors
              pwospf_flood_lsu(ip_header, pwospf_header, lsu_packet, neighbor, intf);
              // check if content the same
-             if(strcmp((char*) neighbor->last_adverts, (char*) (payload + 8)) != 0) {
+             printf("last adverts :%s\n",  (char*) neighbor->last_adverts);
+             printf("new: %s\n", (char*) (payload + 8));
+             if(memcmp(neighbor->last_adverts, payload + 8, payload_len - 8) != 0) {
                 // nope new content
                 printf(" ** pwospf_lsu_type(..) new content neighbor db\n");
                 if(ntohl(neighbor->last_lsu_packet.no_of_adverts) != ntohl(lsu_packet->no_of_adverts)) {
