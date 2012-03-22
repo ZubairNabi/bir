@@ -452,7 +452,8 @@ int predicate_timeval_neighbor_t(void* item, void* time) {
 
 int display_neighbor_t(void* data) {
    neighbor_t *entry = (neighbor_t*) data;
-   printf("ID: %lu, IP: %s, Timestamp: %ld.%06ld, Helloint: %u, Mask: %s", entry->id, quick_ip_to_string(entry->ip), entry->timestamp->tv_sec, entry->timestamp->tv_usec, ntohs(entry->helloint), quick_ip_to_string(entry->mask));
+   printf("ID: %lu, IP: %s, Timestamp: %ld.%06ld, Helloint: %u, ", entry->id, quick_ip_to_string(entry->ip), entry->timestamp->tv_sec, entry->timestamp->tv_usec, ntohs(entry->helloint)); 
+   printf("Mask: %s", quick_ip_to_string(entry->mask));
    if(entry->last_adverts == NULL) {
       printf(", no lsus from this neighbor yet\n");
    } else {
