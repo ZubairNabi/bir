@@ -84,7 +84,8 @@ void dijkstra(sr_router* router) {
             }
             ret_lowest = ret_lowest->next;
          }
-         //TODO: remove it from the tentative list
+         //remove it from the tentative list
+         tentative = llist_remove(tentative, predicate_dijkstra_list_data_t, (void*) check_lowest);
          // add to confirmed list
          confirmed = llist_insert_beginning(confirmed, (void*) check_lowest);
       }
