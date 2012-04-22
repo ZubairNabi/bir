@@ -118,7 +118,8 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              // update vertices
              update_neighbor_vertex_t(router, router_entry);
              //run Djikstra's algo
-             dijkstra2(router); 
+             dijkstra(router);
+             //dijkstra2(router); 
              //free(lsu_packet);
              //free(ret);
              //free(neighbor);
@@ -176,7 +177,8 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              	   update_neighbor_vertex_t(router, router_entry);
                 } 
                   //run Djikstra's algo
-                  dijkstra2(router);
+                  dijkstra(router);
+                  //dijkstra2(router);
                 } else {
                      printf(" ** pwospf_lsu_type(..) error, content same as previous from this neighbor, only updating time stamp in DB\n");  
                      // update timestamp
