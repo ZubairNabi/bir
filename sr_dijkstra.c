@@ -122,12 +122,7 @@ void dijkstra(sr_router* router) {
                printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
                printf("next hop: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
                printf("mask: %s ", quick_ip_to_string(confirmed_subnets_entry->mask));
-               // check if self entry then get interface from interface list
-               // otherwise get interface using neighbors list
-               interface_t* intf = get_interface_ip(router, d_vertex->router_entry.router_id);               
-               if (intf == NULL) {
-                  intf = get_interface_from_ip(router, d_vertex->router_entry.router_id);
-               }
+               interface_t* intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);               
                printf("intf: %s\n" , intf->name);
                // add to routing table
                rrtable_route_add(router->rtable, confirmed_subnets_entry->subnet, d_vertex->router_entry.router_id, confirmed_subnets_entry->mask, intf,'d');
@@ -166,7 +161,7 @@ void dijkstra2(sr_router* router) {
                printf("subnet%s\n", quick_ip_to_string(subnet_entry->subnet));
                printf("next hop%s\n", quick_ip_to_string(vertex->router_entry.router_id));
                printf("mask%s\n", quick_ip_to_string(subnet_entry->mask));
-               interface_t* intf = get_interface_from_ip(router, vertex->router_entry.router_id);
+               interface_t* intf = get_interface_ip(router, vertex->router_entry.router_id & subnet_entry->mask);
                printf("intf %s\n" , intf->name);
                // check if shortest hop 
                // this would be when no other router has that subnet directly
@@ -187,7 +182,7 @@ void dijkstra2(sr_router* router) {
                   head_shortest = head_shortest->next;
                }
                if(flag_shortest == FALSE) {
-                  rrtable_route_add(router->rtable, subnet_entry->subnet, vertex->router_entry.router_id, subnet_entry->mask, get_interface_from_ip(router, vertex->router_entry.router_id),'d');
+                  rrtable_route_add(router->rtable, subnet_entry->subnet, vertex->router_entry.router_id, subnet_entry->mask, get_interface_ip(router, vertex->router_entry.router_id & subnet_entry->mask),'d');
                }
             }
             head_subnets = head_subnets->next;
