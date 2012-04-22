@@ -100,6 +100,8 @@
 // Number of entrties in the destination IP filter table
 #define ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH   32
 
+#define ROUTER_OP_GATEWAY_TABLE_DEPTH             32
+
 // Default MAC address for port 0
 #define ROUTER_OP_LUT_DEFAULT_MAC_0               0xcafef00d0001
 #define ROUTER_OP_LUT_DEFAULT_MAC_0_HI            0x0000cafe
