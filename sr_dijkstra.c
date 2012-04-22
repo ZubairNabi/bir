@@ -7,18 +7,22 @@
 
 void dijkstra(sr_router* router) {
    printf(" ** dijkstra(..) called\n");
+   // tentative list
    node* tentative = llist_new();
+   // confirmed list
    node* confirmed = llist_new();
-   node* lsp, *first, *ret_tentative, *ret_confirmed, *ret_lowest;
+   node* lsp, *ret_tentative, *ret_confirmed, *ret_lowest;
    subnet_entry_t* subnet_entry;
-   dijkstra_list_data_t* next, *check_tentative, *check_lowest, *lowest;
+   dijkstra_list_data_t *self_data/*to hold self info*/, *next/*router under consideration*/, *check_tentative, *check_lowest, *lowest;
    int min = 0;
    //get self entry from db
    neighbor_vertex_t* self_vertex = find_self(router);
    // create list entry
-   dijkstra_list_data_t* self_data = (dijkstra_list_data_t*) malloc_or_die(sizeof(dijkstra_list_data_t));
+   self_data = (dijkstra_list_data_t*) malloc_or_die(sizeof(dijkstra_list_data_t));
+   // give self a cost of zero
    self_data->cost = 0;
    self_data->destination = self_vertex;
+   // self would have no next hop
    self_data->next_hop = 0;
    //add to confirmed list
    confirmed = llist_insert_beginning(confirmed, (void*) self_data);
@@ -29,11 +33,10 @@ void dijkstra(sr_router* router) {
    next->destination->visited = 1;
    // get lsus of this router
    lsp = next->destination->subnets; 
-   first = lsp;
    //traverse over its subnets
-   while(first!= NULL) {
+   while(lsp!= NULL) {
       printf("loop\n");
-      subnet_entry = first->data; 
+      subnet_entry = lsp->data; 
       // find neighbor
       if(subnet_entry->router_id != 0) {
          // for each neighbor create new entry
@@ -45,8 +48,8 @@ void dijkstra(sr_router* router) {
          new_data->destination = find_vertex(router, subnet_entry->router_id); 
          // if neighbors data is found
          if(new_data->destination != NULL) {
-            ret_tentative = llist_find(tentative, predicate_vertex_t, (void*) new_data->destination);    
-            ret_confirmed = llist_find(tentative, predicate_vertex_t, (void*) new_data->destination);
+            ret_tentative = llist_find(tentative, predicate_dijkstra_list_data_t_vertex_t, (void*) new_data->destination);    
+            ret_confirmed = llist_find(tentative, predicate_dijkstra_list_data_t_vertex_t, (void*) new_data->destination);
             //if entry is neither in tenative nor confirmed, add to tentative
             if(ret_tentative == NULL && ret_confirmed == NULL) {
                tentative = llist_insert_beginning(tentative, (void*) new_data);
@@ -60,7 +63,7 @@ void dijkstra(sr_router* router) {
          }
          
       }
-      first = first->next;
+      lsp = lsp->next;
    } // done with this router
    //if tentative is empty then quit
    //else pick the entry with lowest cost from tenative and add to confirmed
@@ -68,9 +71,11 @@ void dijkstra(sr_router* router) {
       if(ret_lowest == NULL) {
          break;
       } else { 
+         // choose the first entry as the lowest cost one
          check_lowest = (dijkstra_list_data_t*) ret_lowest->data;
          min = check_lowest->cost;
          lowest = check_lowest;
+         // now see if there's any entry lower than it
          while (ret_lowest != NULL) {
             check_lowest = (dijkstra_list_data_t*) ret_lowest->data; 
             if(check_lowest->cost < min) {
@@ -79,9 +84,11 @@ void dijkstra(sr_router* router) {
             }
             ret_lowest = ret_lowest->next;
          }
+         //TODO: remove it from the tentative list
+         // add to confirmed list
          confirmed = llist_insert_beginning(confirmed, (void*) check_lowest);
       }
-}   
+   }   
 }
 
 void dijkstra2(sr_router* router) {

@@ -60,3 +60,4 @@ int predicate_timeval_vertex_t(void* item, void* time, void* router_id);
 node* llist_remove_all_no_count_3(node* Head, int(*func)(void*,void*, void*), void* num, void* arg);
 int predicate_dijkstra_list_data_t(void *listdata, void *data);
 int predicate_id_neighbor_t_neighbor_t(void *listdata, void *neighbor);
+int predicate_dijkstra_list_data_t_vertex_t(void *listdata, void *vertex);

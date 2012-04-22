@@ -662,3 +662,11 @@ int predicate_id_neighbor_t_neighbor_t(void *listdata, void *neighbor) {
            return 0;
 }
 
+int predicate_dijkstra_list_data_t_vertex_t(void *listdata, void *vertex) {
+        dijkstra_list_data_t *listdata_entry = (dijkstra_list_data_t*) listdata;
+        neighbor_vertex_t *vertex_test = (neighbor_vertex_t*) vertex;
+        if( listdata_entry->destination->router_entry.router_id == vertex_test->router_entry.router_id)
+           return 1;
+        else
+           return 0;
+}
