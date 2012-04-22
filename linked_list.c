@@ -11,6 +11,7 @@
 #include "sr_pwospf_types.h"
 #include "sr_neighbor_db.h"
 #include "sr_dijkstra.h"
+#include "sr_integration.h"
 
 node *llist_new() {
    node* head = NULL;
@@ -444,8 +445,14 @@ int predicate_timeval_neighbor_t(void* item, void* time) {
    neighbor_t *entry = (neighbor_t*) item;
    struct timeval *time_test = (struct timeval*) time;
    time_test->tv_sec = time_test->tv_sec - ntohs(entry->helloint) * 3;
-   if(is_later(time_test, entry->timestamp) == TRUE)
+   if(is_later(time_test, entry->timestamp) == TRUE) {
+          // update info in neighbor db
+      // get instance of router 
+      struct sr_instance* sr_inst = get_sr();
+      struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+      update_neighbor_vertex_t_rid(router, entry->ip, 0);
         return 1;
+   }
    else
         return 0;
 }
