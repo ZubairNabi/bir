@@ -215,6 +215,9 @@ void write_interface_hw(struct sr_router* subsystem) {
    //IMP: IP addresses are in network order
    writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, ntohl(subsystem->interface[subsystem->num_interfaces].ip));
    writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, subsystem->num_interfaces);
+   // write IPs to gateway table
+    writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_NEXT_HOP, ntohl(subsystem->interface[subsystem->num_interfaces].ip));
+   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_WR_ADDR, subsystem->num_interfaces);
    if(subsystem->num_interfaces == 0) {
        //IMP: MAC addresses are already in host order
        writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_HI, mac_hi);
@@ -231,6 +234,7 @@ void write_interface_hw(struct sr_router* subsystem) {
        // last interface
        //add allspfrouters ip
        int i = subsystem->num_interfaces + 1;
+       int j = subsystem->num_interfaces + 1;
        char* all_spf_routers =  ALL_SPF_ROUTERS_IP;
        writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, ntohl(make_ip_addr(all_spf_routers))); 
        writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, i);
@@ -240,6 +244,12 @@ void write_interface_hw(struct sr_router* subsystem) {
           writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, 0);
           writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, i);
           i++;
+       }
+       // add zeroes to gateway table as well
+       while(j < ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH) {
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_IP, 0);
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_WR_ADDR, j);
+          j++;
        }
    }
    pthread_mutex_unlock(&subsystem->interface[subsystem->num_interfaces].hw_lock);
@@ -330,6 +340,24 @@ void read_interface_hw() {
         cli_send_str(str);
         free(str);
     } 
+    // read gateway table
+    asprintf(&str, "Gateway IP\n");
+    cli_send_str(str);
+    free(str);
+    for (i = 0; i < ROUTER_OP_LUT_GATEWAY_TABLE_DEPTH; i++) {
+        // write index to register
+        writeReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_RD_ADDR, i);
+        // read value
+        readReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_IP, &ip);
+        ip = htonl(ip);
+        //check for blank entries
+        if( ip == 0)
+           break;
+        asprintf(&str, "%s\n",  quick_ip_to_string(ip));
+        cli_send_str(str);
+        free(str);
+    }
+
 #endif
 }
 
