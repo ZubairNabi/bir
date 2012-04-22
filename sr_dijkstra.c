@@ -26,7 +26,7 @@ void dijkstra(sr_router* router) {
    // self would have no next hop
    self_data->next_hop = 0;
    //add to confirmed list
-   confirmed = llist_insert_beginning(confirmed, (void*) self_data);
+   confirmed = llist_insert_sorted(confirmed, predicate_dijkstra_list_data_t_sort_cost, (void*) self_data);
    next = (dijkstra_list_data_t*) confirmed->data;
    next->destination->visited = 1;
    // loop?
@@ -90,12 +90,17 @@ void dijkstra(sr_router* router) {
       //remove it from the tentative list
       tentative = llist_remove(tentative, predicate_dijkstra_list_data_t, (void*) check_lowest);
       // add to confirmed list
-      confirmed = llist_insert_beginning(confirmed, (void*) check_lowest);
+      confirmed = llist_insert_sorted(confirmed, predicate_dijkstra_list_data_t_sort_cost, (void*) check_lowest);
       // make the newly added router next
       next = check_lowest;
       }
    } /*end of while(1)*/  
+    // print confirmed list
+    printf(" ** Confirmed list: \n");
+    llist_display_all(confirmed, display_dijkstra_list_data_t_list);
     printf(" ** dijkstra(..) finished\n");
+    // delete all dynamic entries
+    rrtable_purge_all_type(router->rtable, 'd');
 }
 
 void dijkstra2(sr_router* router) {

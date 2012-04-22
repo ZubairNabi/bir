@@ -670,3 +670,20 @@ int predicate_dijkstra_list_data_t_vertex_t(void *listdata, void *vertex) {
         else
            return 0;
 }
+
+int predicate_dijkstra_list_data_t_sort_cost(void* listdata1, void* listdata2) {
+  dijkstra_list_data_t *data1 = (dijkstra_list_data_t*) listdata1;
+  dijkstra_list_data_t *data2 = (dijkstra_list_data_t*) listdata2;
+    if( data1->cost <= data2->cost)
+       return 1;
+    else
+       return 0;
+}
+
+int display_dijkstra_list_data_t_list(void* data) {
+   dijkstra_list_data_t* d_data = (dijkstra_list_data_t*) data;
+   printf("Neighbour: ");
+   display_neighbor_vertex_t(d_data->destination);
+   printf("cost: %d, next_hop: %s\n", d_data->cost, quick_ip_to_string(d_data->next_hop));
+   return 0;
+}
