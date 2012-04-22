@@ -33,6 +33,7 @@
 #include "sr_pwospf.h"
 #include "sr_rt.h"
 #include "sr_neighbor_db.h"
+#include "sr_rtable_hw.h"
 
 #ifdef _CPUMODE_
 #include "sr_cpu_extension_nf2.h"
@@ -66,6 +67,7 @@ void sr_integ_init(struct sr_instance* sr)
     arp_cache_init(subsystem);
     interface_init(subsystem);
     rrtable_init(subsystem);
+    hw_rrtable_init(subsystem);
     //enable ospf by default
     toggle_ospf_status(subsystem, TRUE);
     //flush hw registers

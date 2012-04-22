@@ -11,6 +11,7 @@
 #include "sr_interface.h"
 #include "sr_rtable.h"
 #include "nf2util.h"
+#include "sr_rtable_hw.h"
 
 typedef struct neighbor_db_t {
    node* neighbor_db_list;
@@ -35,6 +36,7 @@ typedef struct sr_router {
    interface_t interface[ROUTER_MAX_INTERFACES];
    unsigned num_interfaces;
    rtable_t* rtable;
+   hw_rtable_t* hw_rtable;
    bool ospf_status;
    ls_info_t ls_info;
    //meta data for ping

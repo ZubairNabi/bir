@@ -63,3 +63,4 @@ int predicate_id_neighbor_t_neighbor_t(void *listdata, void *neighbor);
 int predicate_dijkstra_list_data_t_vertex_t(void *listdata, void *vertex);
 int predicate_dijkstra_list_data_t_sort_cost(void* listdata1, void* listdata2);
 int display_dijkstra_list_data_t_list(void* data);
+int predicate_ip_sort_hw_route_t(void* listdata1, void* listdata2);

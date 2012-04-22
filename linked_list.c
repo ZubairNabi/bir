@@ -694,3 +694,13 @@ int display_dijkstra_list_data_t_list(void* data) {
    printf("cost: %d, next_hop: %s\n", d_data->cost, quick_ip_to_string(d_data->next_hop));
    return 0;
 }
+
+int predicate_ip_sort_hw_route_t(void* listdata1, void* listdata2) {
+  hw_route_t *listdata1_route = (hw_route_t*) listdata1;
+  hw_route_t *listdata2_route = (hw_route_t*) listdata2;
+    if( compare_ip(listdata1_route->destination, listdata2_route->destination) == 1 ||
+  compare_ip(listdata1_route->destination, listdata2_route->destination) == 0)
+       return 1;
+    else
+       return 0;
+}
