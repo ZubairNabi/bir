@@ -101,6 +101,41 @@ void dijkstra(sr_router* router) {
     printf(" ** dijkstra(..) finished\n");
     // delete all dynamic entries
     rrtable_purge_all_type(router->rtable, 'd');
+    // now traverse through confirmed list and add entries to routing table
+    node* confirmed_first = confirmed;
+    node* confirmed_subnets_first;
+    dijkstra_list_data_t* d_list_entry;
+    neighbor_vertex_t* d_vertex;
+    subnet_entry_t* confirmed_subnets_entry;
+    while(confirmed_first != NULL) {
+       d_list_entry = confirmed_first->data; 
+       // get its router info
+       d_vertex = d_list_entry->destination;
+       // now get its subnets
+       confirmed_subnets_first = d_vertex->subnets;
+       // traverse its subnets
+       while(confirmed_subnets_first != NULL) {
+          confirmed_subnets_entry = confirmed_subnets_first->data;
+          // make sure that this subnet doesn't already exist in the routing table
+           if(llist_exists(router->rtable->rtable_list, predicate_ip_route_t, (void*) &confirmed_subnets_entry->subnet) == 0) {
+               printf("New interface found! ");
+               printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
+               printf("next hop: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
+               printf("mask: %s ", quick_ip_to_string(confirmed_subnets_entry->mask));
+               // check if self entry then get interface from interface list
+               // otherwise get interface using neighbors list
+               interface_t* intf = get_interface_ip(router, d_vertex->router_entry.router_id);               
+               if (intf == NULL) {
+                  intf = get_interface_from_ip(router, d_vertex->router_entry.router_id);
+               }
+               printf("intf: %s\n" , intf->name);
+               // add to routing table
+               rrtable_route_add(router->rtable, confirmed_subnets_entry->subnet, d_vertex->router_entry.router_id, confirmed_subnets_entry->mask, intf,'d');
+           }
+          confirmed_subnets_first = confirmed_subnets_first->next;
+       }
+       confirmed_first = confirmed_first->next;
+    }
 }
 
 void dijkstra2(sr_router* router) {
