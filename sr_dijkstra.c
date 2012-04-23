@@ -140,6 +140,7 @@ void calculate_routing_table(sr_router* router) {
            if(llist_exists(router->rtable->rtable_list, predicate_ip_route_t, (void*) &confirmed_subnets_entry->subnet) == 0) {
                printf("New interface found! ");
                printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
+               printf("rid: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
                //check if destination isn't self
                uint32_t next_hop = 0;
                if(d_vertex->router_entry.router_id != router->ls_info.router_id) {
@@ -162,6 +163,10 @@ void calculate_routing_table(sr_router* router) {
                if(local_ip == FALSE) {
                   printf("False: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
                   intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);               
+                  // try neighbor list
+                  if(intf == NULL) {
+                     intf = get_interface_from_id(router, d_vertex->router_entry.router_id);
+                  }
                }
                printf("intf: %s\n" , intf->name);
                // add to routing table
