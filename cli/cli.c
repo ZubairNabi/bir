@@ -16,6 +16,7 @@
 #include "../sr_integration.h"
 #include "../sr_rtable.h"
 #include "../sr_neighbor_db.h"
+#include "../sr_router.h"
 
 /* temporary */
 #include "cli_stubs.h"
@@ -260,12 +261,28 @@ void cli_show_ospf() {
     cli_show_ospf_topo();
 }
 
+void cli_show_reroute_multipath() {
+    cli_send_str( "State:\n");
+    cli_show_reroute_multipath_show();
+    
+   cli_send_str("Toggle State:\n");
+    cli_show_reroute_multipath_toggle();
+}
+
 void cli_show_ospf_neighbors() {
     display_all_interfaces_neighbors_str();
 }
 
 void cli_show_ospf_topo() {
    display_neighbor_vertices_str();
+}
+
+void cli_show_reroute_multipath_show() {
+   show_reroute_multipath();
+}
+
+void cli_show_reroute_multipath_toggle() {
+   toggle_reroute_multipath();
 }
 
 #ifndef _VNS_MODE_

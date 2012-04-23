@@ -87,10 +87,10 @@ static void run_command();
 
 /* Terminals with no attribute value */
 %token  T_SHOW T_QUESTION T_NEWLINE T_ALL
-%token  T_VNS T_USER T_VHOST T_LHOST T_TOPOLOGY
-%token  T_IP T_ROUTE T_INTF T_ARP T_OSPF T_HW T_NEIGHBORS
+%token  T_VNS T_USER T_VHOST T_LHOST T_TOPOLOGY T_REROUTE_MULTIPATH_TOGGLE
+%token  T_IP T_ROUTE T_INTF T_ARP T_OSPF T_HW T_NEIGHBORS T_REROUTE_MULTIPATH
 %token  T_ADD T_DEL T_UP T_DOWN T_PURGE T_STATIC T_DYNAMIC T_ABOUT
-%token  T_PING T_TRACE T_HELP T_EXIT T_SHUTDOWN T_FLOOD
+%token  T_PING T_TRACE T_HELP T_EXIT T_SHUTDOWN T_FLOOD T_REROUTE_MULTIPATH_SHOW
 %token  T_SET T_UNSET T_OPTION T_VERBOSE T_DATE
 
 /* Terminals which evaluate to some attribute value */
@@ -121,6 +121,7 @@ ShowType : /* empty: show all */                  { SETC_FUNC0(cli_show_all); }
          | T_OSPF ShowTypeOSPF
          | T_VNS ShowTypeVNS
          | T_OPTION ShowTypeOption
+         | T_REROUTE_MULTIPATH ShowTypeRerouteMultipath
          | HelpOrQ                                { HELP(HELP_SHOW); }
          ;
 
@@ -152,6 +153,14 @@ ShowTypeOSPF : /* empty: show all */                { SETC_FUNC0(cli_show_ospf);
              | T_TOPOLOGY                           { SETC_FUNC0(cli_show_ospf_topo); }
              | T_TOPOLOGY TMIorQ                    { HELP(HELP_SHOW_OSPF_TOPOLOGY); }
              | WrongOrQ                             { HELP(HELP_SHOW_OSPF); }
+             ;
+
+ShowTypeRerouteMultipath : /* empty: show all */                { SETC_FUNC0(cli_show_reroute_multipath); }
+             | T_REROUTE_MULTIPATH_SHOW                          { SETC_FUNC0(cli_show_reroute_multipath_show); }
+             | T_REROUTE_MULTIPATH_SHOW TMIorQ                   { HELP(HELP_SHOW_REROUTE_MULTIPATH_SHOW); }
+             | T_REROUTE_MULTIPATH_TOGGLE                          { SETC_FUNC0(cli_show_reroute_multipath_toggle); }          
+             | T_REROUTE_MULTIPATH_TOGGLE TMIorQ                   { HELP(HELP_SHOW_REROUTE_MULTIPATH_TOGGLE); }
+             | WrongOrQ                             { HELP(HELP_SHOW_REROUTE_MULTIPATH); }
              ;
 
 TMIorQ : HelpOrQ
@@ -305,6 +314,9 @@ ActionHelp : HelpOrQ                              { HELP(HELP_ACTION_HELP); }
            | HelpOrQ T_SHOW T_OSPF                { HELP(HELP_SHOW_OSPF); }
            | HelpOrQ T_SHOW T_OSPF T_NEIGHBORS    { HELP(HELP_SHOW_OSPF_NEIGHBORS); }
            | HelpOrQ T_SHOW T_OSPF T_TOPOLOGY     { HELP(HELP_SHOW_OSPF_TOPOLOGY); }
+           | HelpOrQ T_SHOW T_REROUTE_MULTIPATH   { HELP(HELP_SHOW_REROUTE_MULTIPATH); }
+           | HelpOrQ T_SHOW T_REROUTE_MULTIPATH T_REROUTE_MULTIPATH_SHOW     { HELP(HELP_SHOW_REROUTE_MULTIPATH_SHOW); }
+           | HelpOrQ T_SHOW T_REROUTE_MULTIPATH T_REROUTE_MULTIPATH_TOGGLE  { HELP(HELP_SHOW_REROUTE_MULTIPATH_TOGGLE); }
            | HelpOrQ T_SHOW T_VNS                 { HELP(HELP_SHOW_VNS); }
            | HelpOrQ T_SHOW T_VNS T_LHOST         { HELP(HELP_SHOW_VNS_LHOST); }
            | HelpOrQ T_SHOW T_VNS T_TOPOLOGY      { HELP(HELP_SHOW_VNS_TOPOLOGY); }

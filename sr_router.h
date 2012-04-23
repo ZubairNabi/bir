@@ -44,6 +44,8 @@ typedef struct sr_router {
    neighbor_db_t* neighbor_db;
    // hw device
    struct nf2device hw_device;
+   // fast reroute and multipath
+   bool reroute_multipath_status;
 } sr_router;
 
 void toggle_ospf_status(sr_router* router, bool status);
@@ -65,3 +67,11 @@ void clear_ping_info(sr_router* router);
 bool check_ospf_status(sr_router* router);
 
 void hw_init(sr_router* router);
+
+void toggle_reroute_multipath_status(sr_router* router, bool status);
+
+bool show_reroute_multipath_status(sr_router* router);
+
+void show_reroute_multipath();
+
+void toggle_reroute_multipath();

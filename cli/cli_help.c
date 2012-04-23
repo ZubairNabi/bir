@@ -46,6 +46,7 @@ HELP_SHOW_HW,
 HELP_SHOW_IP,
 HELP_SHOW_OPT,
 HELP_SHOW_OSPF,
+HELP_SHOW_REROUTE_MULTIPATH,
 HELP_SHOW_VNS );
 
           case HELP_SHOW_HW:
@@ -119,6 +120,21 @@ show ospf neigh: displays information about each interface's neighbors\n" );
             case HELP_SHOW_OSPF_TOPOLOGY:
                 return 0==writenstr( fd, "\
 show ospf topo: displays the current dynamically computed network topology\n" );
+
+            case HELP_SHOW_REROUTE_MULTIPATH:
+              return cli_send_multi_help( fd, "\
+show reroute [show | toggle]: display information about reroute and multipath state\n",
+2,
+HELP_SHOW_REROUTE_MULTIPATH_SHOW,
+HELP_SHOW_REROUTE_MULTIPATH_TOGGLE);
+
+            case HELP_SHOW_REROUTE_MULTIPATH_SHOW:
+                return 0==writenstr( fd, "\
+show reroute show: displays whether reroute and multipath are enabled\n" );
+
+            case HELP_SHOW_REROUTE_MULTIPATH_TOGGLE:
+                return 0==writenstr( fd, "\
+show reroute toggle: toggles reroute and multipath state\n" );
 
           case HELP_SHOW_VNS:
               return cli_send_multi_help( fd, "\

@@ -119,6 +119,10 @@ void cli_show_ospf();
 void cli_show_ospf_neighbors();
 void cli_show_ospf_topo();
 
+void cli_show_reroute_multipath();
+void cli_show_reroute_multipath_show();
+void cli_show_reroute_multipath_toggle();
+
 #ifndef _VNS_MODE_
     void cli_send_no_vns_str();
 #   define cli_show_vns        cli_send_no_vns_str

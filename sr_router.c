@@ -74,3 +74,46 @@ void hw_init(sr_router* router) {
        }
     }
 }
+
+void toggle_reroute_multipath_status(sr_router* router, bool status) {
+   router->reroute_multipath_status = status;
+}
+
+
+bool show_reroute_multipath_status(sr_router* router) {
+   return router->reroute_multipath_status;
+}
+
+void toggle_reroute_multipath() {
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   char *str;
+   bool status = show_reroute_multipath_status(router);
+   if (status == TRUE) {
+      toggle_reroute_multipath_status(router, FALSE);
+      asprintf(&str, "Reroute and Multipath disabled\n");
+      cli_send_str(str);
+      free(str);
+   } else {
+      toggle_reroute_multipath_status(router, TRUE);
+      asprintf(&str, "Reroute and Multipath enabled\n");
+      cli_send_str(str);
+      free(str);
+   }
+}
+
+void show_reroute_multipath() {
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+   char *str;
+   bool status = show_reroute_multipath_status(router);
+   if (status == TRUE) {
+      asprintf(&str, "Reroute and Multipath is enabled\n");
+      cli_send_str(str);
+      free(str);
+   } else {
+      asprintf(&str, "Reroute and Multipath is disabled\n");
+      cli_send_str(str);
+      free(str);
+   }
+}

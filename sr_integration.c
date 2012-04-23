@@ -70,6 +70,8 @@ void sr_integ_init(struct sr_instance* sr)
     hw_rrtable_init(subsystem);
     //enable ospf by default
     toggle_ospf_status(subsystem, TRUE);
+    //disable reroute/multipath 
+    toggle_reroute_multipath_status(subsystem, FALSE);
     //flush hw registers
 #ifdef _CPUMODE_
     hw_init(subsystem);
