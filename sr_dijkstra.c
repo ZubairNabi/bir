@@ -128,7 +128,12 @@ void calculate_routing_table(sr_router* router) {
            if(llist_exists(router->rtable->rtable_list, predicate_ip_route_t, (void*) &confirmed_subnets_entry->subnet) == 0) {
                printf("New interface found! ");
                printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
-               printf("next hop: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
+               //check if destination isn't self
+               uint32_t next_hop = 0;
+               if(d_vertex->router_entry.router_id != router->ls_info.router_id) {
+                  next_hop = d_vertex->router_entry.router_id;
+               } 
+               printf("next hop: %s ", quick_ip_to_string(next_hop));
                printf("mask: %s ", quick_ip_to_string(confirmed_subnets_entry->mask));
                interface_t* intf = NULL;
                local_ip = FALSE;
@@ -148,7 +153,7 @@ void calculate_routing_table(sr_router* router) {
                }
                printf("intf: %s\n" , intf->name);
                // add to routing table
-               rrtable_route_add(router->rtable, confirmed_subnets_entry->subnet, d_vertex->router_entry.router_id, confirmed_subnets_entry->mask, intf,'d');
+               rrtable_route_add(router->rtable, confirmed_subnets_entry->subnet, next_hop, confirmed_subnets_entry->mask, intf,'d');
            }
           confirmed_subnets_first = confirmed_subnets_first->next;
        }
