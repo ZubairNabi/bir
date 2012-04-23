@@ -56,7 +56,8 @@ SR_BASE_SRCS = sr_base.c sr_dumper.c sr_integration.c sr_lwtcp_glue.c \
                sr_neighbor.c sr_arp.c sr_ip.c sr_icmp.c sr_icmp_types.c \
                sr_icmp_types_response.c sr_udp.c sr_ethernet.c sr_rtable.c \
                sr_router.c sr_pwospf.c sr_pwospf_types.c sr_rt.c \
-               sr_icmp_types_send.c sr_neighbor_db.c sr_dijkstra.c sr_rtable_hw.c
+               sr_icmp_types_send.c sr_neighbor_db.c sr_dijkstra.c sr_rtable_hw.c \
+               sr_reroute_multipath.c
 
 SR_BASE_OBJS = $(patsubst %.c,%.o,$(SR_BASE_SRCS))
 
