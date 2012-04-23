@@ -154,7 +154,13 @@ void rrtable_purge_all( rtable_t* rtable ) {
  */
 void rrtable_to_string() {
    char *str;
-   asprintf(&str, "Type, Dst IP, Next Hop IP, Subnet Mask, Interface\n");
+   asprintf(&str, "------------------------------------------------------------------------\n");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "| Type | %-14s | %-14s | %-14s  | %-9s |\n", "Destination", "Next Hop", "Mask", "Interface");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "------------------------------------------------------------------------\n");
    cli_send_str(str);
    free(str);
    node* head;
@@ -166,17 +172,20 @@ void rrtable_to_string() {
    head = router->rtable->rtable_list;
    while(head != NULL) {
       entry = (route_t*) head->data;
-      asprintf(&str, "%c, %s, ", entry->type, quick_ip_to_string(entry->destination));
+      asprintf(&str, "| %-4c | %-14s | ", entry->type, quick_ip_to_string(entry->destination));
       cli_send_str(str);
       free(str);
-      asprintf(&str, "%s ", quick_ip_to_string(entry->next_hop));
+      asprintf(&str, "%-14s |", quick_ip_to_string(entry->next_hop));
       cli_send_str(str);
       free(str);
-      asprintf(&str, " %s, %s\n", quick_ip_to_string(entry->subnet_mask), entry->intf.name);
+      asprintf(&str, " %-14s | %-9s |\n", quick_ip_to_string(entry->subnet_mask), entry->intf.name);
       cli_send_str(str);
       free(str);
       head = head->next;
    }
+   asprintf(&str, "------------------------------------------------------------------------\n");
+   cli_send_str(str);
+   free(str);
    pthread_mutex_unlock(&router->rtable->lock_rtable);
 }
 
