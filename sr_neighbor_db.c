@@ -3,6 +3,7 @@
 #include "sr_integration.h"
 #include "cli/cli.h"
 #include "lwtcp/lwip/sys.h"
+#include "sr_dijkstra.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -299,6 +300,7 @@ void remove_timed_out_routers(void* input) {
    struct timespec *timeout_rem =(struct timespec*) malloc_or_die(sizeof(struct timespec));
    timeout->tv_sec = (time_t) 10;
    timeout->tv_nsec = 0;
+   int count = 0;
    while(1) {
       // sleep for interval
       nanosleep(timeout, timeout_rem);
@@ -312,10 +314,15 @@ void remove_timed_out_routers(void* input) {
       	pthread_mutex_lock(&router->neighbor_db->neighbor_db_lock);
       	// remove all timed out 
       	if(current_time == NULL)
-        	 printf("Current time is null\n");
-      	router->neighbor_db->neighbor_db_list = llist_remove_all_no_count_3(router->neighbor_db->neighbor_db_list, predicate_timeval_vertex_t, (void*)current_time, (void*) &router->ls_info.router_id);
+           printf("Current time is null\n");
+        count = 0;
+      	router->neighbor_db->neighbor_db_list = llist_remove_all_3(router->neighbor_db->neighbor_db_list, predicate_timeval_vertex_t, (void*)current_time, (void*) &router->ls_info.router_id, &count);
       	// unlock list
       	pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
+        // if any routers have timed out then recalculate routing table
+        if(count > 0) {
+           calculate_routing_table(router);
+        }
       }
    }
 }

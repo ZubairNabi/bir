@@ -704,3 +704,35 @@ int predicate_ip_sort_hw_route_t(void* listdata1, void* listdata2) {
     else
        return 0;
 }
+
+node* llist_remove_all_3(node* Head, int(*func)(void*,void*, void*), void* num, void* arg, int *count) {
+   node *prev_ptr, *cur_ptr;
+   *count = 0;
+   bool found = FALSE;
+   cur_ptr = Head;
+   while(cur_ptr != NULL) {
+      if(func(cur_ptr->data, num, arg) == 1) {
+         found = TRUE;
+         *count = *count + 1;
+         if(cur_ptr==Head) {
+           printf("head!\n");
+            Head=cur_ptr->next;
+            free(cur_ptr);
+            if(cur_ptr->next == NULL)
+               return NULL;
+            cur_ptr = Head;
+         } else {
+            prev_ptr->next=cur_ptr->next;
+            free(cur_ptr);
+            cur_ptr = Head;
+         }
+      }
+      else {
+         prev_ptr=cur_ptr;
+         cur_ptr=cur_ptr->next;
+      }
+   }
+   if(found == FALSE)
+      printf("Not found\n");
+   return Head;
+}
