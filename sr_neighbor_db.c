@@ -245,28 +245,37 @@ void display_neighbor_vertices_str() {
    v_head = router->neighbor_db->neighbor_db_list;
    while(v_head != NULL) {
       vertex = v_head->data; 
-      asprintf(&str, "Router Id: %s, Area Id: %lu, Timestamp: %ld.%06ld\n", quick_ip_to_string(vertex->router_entry.router_id), vertex->router_entry.area_id, vertex->timestamp->tv_sec, vertex->timestamp->tv_usec);
+      cli_send_str("\n-------------------------------------------\n");
+      asprintf(&str, "|%-15s|%-7s|%-17s|\n", "Router ID", "Area ID", "Timestamp");
       cli_send_str(str);
       free(str);
+       cli_send_str("-------------------------------------------\n");
+      asprintf(&str, "|%-15s|%-7lu|%ld.%06ld|\n", quick_ip_to_string(vertex->router_entry.router_id), vertex->router_entry.area_id, vertex->timestamp->tv_sec, vertex->timestamp->tv_usec);
+      cli_send_str(str);
+      free(str);
+      cli_send_str("-------------------------------------------\n");
       // now interate through all subnets of this vertex
       s_head = vertex->subnets;
-      asprintf(&str, "Subnet, Mask, Router Id\n");
+      cli_send_str("-------------------------------------------------\n");
+      asprintf(&str,"|%-15s|%-15s|%-15s|\n", "Subnet", "Mask", "Router ID");
       cli_send_str(str);
       free(str);
+      cli_send_str("-------------------------------------------------\n");
       while(s_head != NULL) {
          subnet_entry = s_head->data; 
-         asprintf(&str, "%s, ", quick_ip_to_string(subnet_entry->subnet));
+         asprintf(&str, "|%-15s|", quick_ip_to_string(subnet_entry->subnet));
      	 cli_send_str(str);
       	 free(str);
-         asprintf(&str, "%s, ", quick_ip_to_string(subnet_entry->mask));
+         asprintf(&str, "%-15s|", quick_ip_to_string(subnet_entry->mask));
          cli_send_str(str);
          free(str);
-         asprintf(&str, "%s\n", quick_ip_to_string(subnet_entry->router_id));
+         asprintf(&str, "%-15s|\n", quick_ip_to_string(subnet_entry->router_id));
          cli_send_str(str);
          free(str);
          s_head = s_head->next;
       }
       v_head = v_head->next;
+      cli_send_str("-------------------------------------------------\n");
    }
    pthread_mutex_unlock(&router->neighbor_db->neighbor_db_lock);
 }
