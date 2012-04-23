@@ -113,6 +113,8 @@ void calculate_routing_table(sr_router* router) {
     dijkstra_list_data_t* d_list_entry;
     neighbor_vertex_t* d_vertex;
     subnet_entry_t* confirmed_subnets_entry;
+    bool local_ip = FALSE;
+    int i = 0;
     while(confirmed_first != NULL) {
        d_list_entry = confirmed_first->data; 
        // get its router info
@@ -128,7 +130,22 @@ void calculate_routing_table(sr_router* router) {
                printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
                printf("next hop: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
                printf("mask: %s ", quick_ip_to_string(confirmed_subnets_entry->mask));
-               interface_t* intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);               
+               interface_t* intf = NULL;
+               local_ip = FALSE;
+               //check if destination is a local interface
+               for( i = 0; i < router->num_interfaces; i++) {
+                  if(router->interface[i].ip == confirmed_subnets_entry->subnet) {
+                     intf = &router->interface[i];
+                     local_ip = TRUE;
+                     printf("True: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
+                     break;
+                  }
+               }
+               // if not local then get specific interface
+               if(local_ip == FALSE) {
+                  printf("False: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
+                  intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);               
+               }
                printf("intf: %s\n" , intf->name);
                // add to routing table
                rrtable_route_add(router->rtable, confirmed_subnets_entry->subnet, d_vertex->router_entry.router_id, confirmed_subnets_entry->mask, intf,'d');
