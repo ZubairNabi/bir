@@ -9,7 +9,7 @@ typedef struct dijkstra_list_data_t {
    uint32_t next_hop;
 } dijkstra_list_data_t;
 
-node* dijkstra(sr_router* router);
+node* dijkstra(sr_router* router, interface_t* select_intf);
 
 void dijkstra2(sr_router* router);
 

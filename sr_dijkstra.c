@@ -5,7 +5,7 @@
 #include "sr_rtable.h"
 #include "cli/helper.h"
 
-node* dijkstra(sr_router* router) {
+node* dijkstra(sr_router* router, interface_t* select_intf) {
    printf(" ** dijkstra(..) called\n");
    // tentative list
    node* tentative = llist_new();
@@ -15,6 +15,8 @@ node* dijkstra(sr_router* router) {
    subnet_entry_t* subnet_entry;
    dijkstra_list_data_t *self_data/*to hold self info*/, *next/*router under consideration*/, *check_tentative, *check_lowest, *lowest;
    int min = 0;
+   // to check whether reroute/multipath is being run for a specific interface
+   bool select_intf_flag = FALSE;
    //get self entry from db
    neighbor_vertex_t* self_vertex = find_self(router);
    //display_neighbor_vertex_t((void*) self_vertex);
@@ -39,8 +41,18 @@ node* dijkstra(sr_router* router) {
       while(lsp!= NULL) {
          //printf("loop\n");
          subnet_entry = lsp->data; 
+         // check that focus is not on a specific interface
+         if(select_intf != NULL) {
+            printf(" ** dijkstra(..) running for: %s\n", select_intf->name);
+            node* select_intf_neighbors = select_intf->neighbor_list;
+            pthread_mutex_lock(&select_intf->neighbor_lock); 
+            select_intf_flag = llist_exists(select_intf_neighbors, predicate_ip_neighbor_t, (void*) &next->destination->router_entry.router_id);
+            pthread_mutex_unlock(&select_intf->neighbor_lock);
+         } else { //true by default
+            select_intf_flag = TRUE;
+         }
          // find neighbor
-         if(subnet_entry->router_id != 0) {
+         if(subnet_entry->router_id != 0 && select_intf_flag == TRUE) {
             printf("router_id: %s\n", quick_ip_to_string(subnet_entry->router_id));
             // for each neighbor create new entry
             dijkstra_list_data_t* new_data = (dijkstra_list_data_t*) malloc_or_die(sizeof(dijkstra_list_data_t));
@@ -104,7 +116,7 @@ node* dijkstra(sr_router* router) {
 
 void calculate_routing_table(sr_router* router) {
     printf(" ** calculate_routing_table(..) called\n");
-    node* confirmed = dijkstra(router);
+    node* confirmed = dijkstra(router, NULL);
     // delete all dynamic entries
     rrtable_purge_all_type(router->rtable, 'd');
     // now traverse through confirmed list and add entries to routing table
