@@ -246,8 +246,8 @@ void write_interface_hw(struct sr_router* subsystem) {
           i++;
        }
        // add zeroes to gateway table as well
-       while(j < ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH) {
-          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_IP, 0);
+       while(j < ROUTER_OP_LUT_GATEWAY_TABLE_DEPTH) {
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_NEXT_HOP, 0);
           writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_WR_ADDR, j);
           j++;
        }
@@ -348,7 +348,7 @@ void read_interface_hw() {
         // write index to register
         writeReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_RD_ADDR, i);
         // read value
-        readReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_IP, &ip);
+        readReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_NEXT_HOP, &ip);
         ip = htonl(ip);
         //check for blank entries
         if( ip == 0)

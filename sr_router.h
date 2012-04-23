@@ -75,3 +75,5 @@ bool show_reroute_multipath_status(sr_router* router);
 void show_reroute_multipath();
 
 void toggle_reroute_multipath();
+
+void write_hw_reroute_multipath(sr_router* router, bool status);

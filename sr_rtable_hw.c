@@ -165,7 +165,7 @@ void hw_rrtable_write_hw() {
    node *head = router->hw_rtable->hw_rtable_list;
    int i = 0;
    while(head != NULL && i != ROUTER_OP_LUT_ROUTE_TABLE_DEPTH) {
-      hw_route = (hw_route_t*) head->data;
+      route = (hw_route_t*) head->data;
       // Destination IP
       writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, ntohl(route->destination));
       // Mask 
@@ -212,7 +212,7 @@ void hw_rrtable_read_hw() {
         asprintf(&str, "%s ", quick_ip_to_string(htonl(next_hop)));
         cli_send_str(str);
         free(str);
-        asprintf(&str, " %s, %d\n", quick_ip_to_string(htonl(mask)), hw_ports);
+        asprintf(&str, " %s, %d\n", quick_ip_to_string(htonl(mask)), hw_port);
         cli_send_str(str);
         free(str);
    }
