@@ -9,8 +9,10 @@ typedef struct dijkstra_list_data_t {
    uint32_t next_hop;
 } dijkstra_list_data_t;
 
-void dijkstra(sr_router* router);
+node* dijkstra(sr_router* router);
 
 void dijkstra2(sr_router* router);
 
 void display_dijkstra_list_data_t(dijkstra_list_data_t*);
+
+void calculate_routing_table(sr_router *router);

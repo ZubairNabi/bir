@@ -5,7 +5,7 @@
 #include "sr_rtable.h"
 #include "cli/helper.h"
 
-void dijkstra(sr_router* router) {
+node* dijkstra(sr_router* router) {
    printf(" ** dijkstra(..) called\n");
    // tentative list
    node* tentative = llist_new();
@@ -99,6 +99,12 @@ void dijkstra(sr_router* router) {
     printf(" ** Confirmed list: \n");
     llist_display_all(confirmed, display_dijkstra_list_data_t_list);
     printf(" ** dijkstra(..) finished\n");
+    return confirmed;
+}
+
+void calculate_routing_table(sr_router* router) {
+    printf(" ** calculate_routing_table(..) called\n");
+    node* confirmed = dijkstra(router);
     // delete all dynamic entries
     rrtable_purge_all_type(router->rtable, 'd');
     // now traverse through confirmed list and add entries to routing table
