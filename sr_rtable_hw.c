@@ -52,12 +52,12 @@ void hw_rrtable_destroy(hw_rtable_t *hw_rtable){
  */
 void hw_rrtable_route_add( hw_rtable_t *hw_rtable,
                        addr_ip_t dest, addr_ip_t gw, addr_ip_t mask,
-                       uint32_t ports) {
+                       uint16_t primary, uint16_t backup) {
    printf(" ** hw_rrtable_route_add(..) called \n");
    // get subnet
    dest = dest & mask;
    // make route_t object
-   hw_route_t* route = hw_make_route_t(dest, ports, gw, mask);
+   hw_route_t* route = hw_make_route_t(dest, primary, backup, gw, mask);
    // lock table
    pthread_mutex_lock(&hw_rtable->hw_lock_rtable);
    // add route to table
@@ -120,7 +120,7 @@ void hw_rrtable_purge_all( hw_rtable_t* hw_rtable ) {
  */
 void hw_rrtable_to_string() {
    char *str;
-   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Ports\n");
+   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Primary, Backup\n");
    cli_send_str(str);
    free(str);
    node* head;
@@ -138,7 +138,7 @@ void hw_rrtable_to_string() {
       asprintf(&str, "%s ", quick_ip_to_string(entry->next_hop));
       cli_send_str(str);
       free(str);
-      asprintf(&str, " %s, %d\n", quick_ip_to_string(entry->subnet_mask), entry->ports);
+      asprintf(&str, " %s, %d, %d\n", quick_ip_to_string(entry->subnet_mask), entry->primary, entry->backup);
       cli_send_str(str);
       free(str);
       head = head->next;
@@ -146,10 +146,11 @@ void hw_rrtable_to_string() {
    pthread_mutex_unlock(&router->hw_rtable->hw_lock_rtable);
 }
 
-hw_route_t* hw_make_route_t(addr_ip_t dst, uint32_t ports, addr_ip_t next_hop, addr_ip_t subnet_mask) {
+hw_route_t* hw_make_route_t(addr_ip_t dst, uint16_t primary, uint16_t backup, addr_ip_t next_hop, addr_ip_t subnet_mask) {
    hw_route_t* route = (hw_route_t*) malloc_or_die(sizeof(hw_route_t));
    route->destination = dst;
-   route->ports = ports;
+   route->primary = primary;
+   route->backup = backup;
    route->next_hop = next_hop;
    route->subnet_mask = subnet_mask;
    return route;
@@ -173,7 +174,7 @@ void hw_rrtable_write_hw() {
       //Next hop
       writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, ntohl(route->next_hop));
       //Output ports
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, route->ports);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, route->primary + route->backup);
       // row index
       writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR, i);
       head = head->next;
@@ -191,7 +192,8 @@ void hw_rrtable_read_hw() {
    char *str;
    int i;
    uint32_t destination, next_hop, mask, hw_port;
-   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Ports\n");
+   uint16_t primary = 0, backup = 0;
+   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Primary, Backup\n");
    cli_send_str(str);
    free(str);
    for(i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
@@ -212,7 +214,10 @@ void hw_rrtable_read_hw() {
         asprintf(&str, "%s ", quick_ip_to_string(htonl(next_hop)));
         cli_send_str(str);
         free(str);
-        asprintf(&str, " %s, %d\n", quick_ip_to_string(htonl(mask)), hw_port);
+        // split hw_port into primary and backup
+        primary = (uint16_t) (hw_port >> 16);
+        backup = (uint16_t) (hw_port & 0x0000FFFFuL);
+        asprintf(&str, " %s, %d, %d\n", quick_ip_to_string(htonl(mask)), primary, backup);
         cli_send_str(str);
         free(str);
    }

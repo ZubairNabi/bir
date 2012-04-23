@@ -16,7 +16,8 @@ struct sr_router;
 /** contains information about a route */
 typedef struct hw_route_t {
   addr_ip_t destination;
-  uint32_t ports;
+  uint16_t primary;
+  uint16_t backup;
   addr_ip_t next_hop;
   addr_ip_t subnet_mask;
   
@@ -36,7 +37,7 @@ void hw_rrtable_destroy(hw_rtable_t *rtable);
 /** Adds a route to the routing table. */
 void hw_rrtable_route_add( hw_rtable_t *rtable,
                        addr_ip_t dest, addr_ip_t gw, addr_ip_t mask,
-                       uint32_t ports);
+                       uint16_t primary, uint16_t backup);
 
 /** Removes the specified route from the routing table, if present. */
 bool hw_rrtable_route_remove( hw_rtable_t *rtable,
@@ -45,7 +46,7 @@ bool hw_rrtable_route_remove( hw_rtable_t *rtable,
 /** Remove all routes from the router. */
 void hw_rrtable_purge_all( hw_rtable_t* rtable );
 
-hw_route_t* hw_make_route_t(addr_ip_t dst, uint32_t ports, addr_ip_t next_hop, addr_ip_t subnet_mask);
+hw_route_t* hw_make_route_t(addr_ip_t dst, uint16_t primary, uint16_t backup, addr_ip_t next_hop, addr_ip_t subnet_mask);
 
 void hw_rrtable_to_string();
 
