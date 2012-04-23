@@ -151,7 +151,7 @@ void calculate_routing_table(sr_router* router) {
                local_ip = FALSE;
                //check if destination is a local interface
                for( i = 0; i < router->num_interfaces; i++) {
-                  if(router->interface[i].ip == confirmed_subnets_entry->subnet) {
+                  if((router->interface[i].ip & confirmed_subnets_entry->mask)  == confirmed_subnets_entry->subnet) {
                      intf = &router->interface[i];
                      local_ip = TRUE;
                      printf("True: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
