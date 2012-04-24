@@ -65,3 +65,4 @@ int predicate_dijkstra_list_data_t_sort_cost(void* listdata1, void* listdata2);
 int display_dijkstra_list_data_t_list(void* data);
 int predicate_ip_sort_hw_route_t(void* listdata1, void* listdata2);
 node* llist_remove_all_3(node* Head, int(*func)(void*,void*, void*), void* num, void* arg, int *count);
+int predicate_ip_hw_route_t(void *listdata, void *ip);

@@ -12,6 +12,7 @@
 #include "sr_neighbor_db.h"
 #include "sr_dijkstra.h"
 #include "sr_integration.h"
+#include "sr_rtable_hw.h"
 
 node *llist_new() {
    node* head = NULL;
@@ -736,3 +737,13 @@ node* llist_remove_all_3(node* Head, int(*func)(void*,void*, void*), void* num, 
       printf("Not found\n");
    return Head;
 }
+
+int predicate_ip_hw_route_t(void *listdata, void *ip) {
+        hw_route_t *listdata_entry = (hw_route_t*) listdata;
+        addr_ip_t *ip_test = (addr_ip_t*) ip;
+        if( listdata_entry->destination ==  *ip_test)
+           return 1;
+        else
+           return 0;
+}
+
