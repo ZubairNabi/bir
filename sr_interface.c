@@ -423,3 +423,13 @@ void read_info_hw() {
    free(str);
 #endif
 }
+
+uint16_t get_hw_port_from_name(char* intf_name) {
+   if(strcmp("eth0", intf_name) == 0)
+      return 1;
+   else if(strcmp("eth1", intf_name) == 0)
+      return 4;
+   else if(strcmp("eth2", intf_name) == 0)
+      return 16;
+   return 64;
+}

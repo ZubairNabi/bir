@@ -76,4 +76,6 @@ void read_interface_hw();
 
 void read_info_hw();
 
+uint16_t get_hw_port_from_name(char*);
+
 #endif /* SR_INTERFACE_H */
