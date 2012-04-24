@@ -418,6 +418,8 @@ uint16_t get_num_from_name(char* intf_name) {
 
 char* get_interface_from_multiple_hw_ports(uint16_t ports) {
    switch(ports) {
+      case 0:
+         return "none";
       case 1:
          return "eth0";
       case 4: 
