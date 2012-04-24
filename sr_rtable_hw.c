@@ -118,9 +118,16 @@ void hw_rrtable_purge_all( hw_rtable_t* hw_rtable ) {
  * Fills a buffer with a string representation of the routing table
  *
  */
+
 void hw_rrtable_to_string() {
    char *str;
-   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Primary, Backup\n");
+   asprintf(&str, "-------------------------------------------------------------------------\n");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "|%-15s|%-15s|%-15s|%-11s|%-11s|\n", "Destination", "Next Hop", "Mask", "Primary", "Backup");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "-------------------------------------------------------------------------\n");
    cli_send_str(str);
    free(str);
    node* head;
@@ -132,17 +139,20 @@ void hw_rrtable_to_string() {
    head = router->hw_rtable->hw_rtable_list;
    while(head != NULL) {
       entry = (hw_route_t*) head->data;
-      asprintf(&str, "%s, ", quick_ip_to_string(entry->destination));
+      asprintf(&str, "|%-15s|", quick_ip_to_string(entry->destination));
       cli_send_str(str);
       free(str);
-      asprintf(&str, "%s ", quick_ip_to_string(entry->next_hop));
+      asprintf(&str, "%-15s|", quick_ip_to_string(entry->next_hop));
       cli_send_str(str);
       free(str);
-      asprintf(&str, " %s, %d, %d\n", quick_ip_to_string(entry->subnet_mask), entry->primary, entry->backup);
+      asprintf(&str, "%-15s|%-11d|%-11d|\n", quick_ip_to_string(entry->subnet_mask), entry->primary, entry->backup);
       cli_send_str(str);
       free(str);
       head = head->next;
    }
+   asprintf(&str, "-------------------------------------------------------------------------\n");
+   cli_send_str(str);
+   free(str);
    pthread_mutex_unlock(&router->hw_rtable->hw_lock_rtable);
 }
 
