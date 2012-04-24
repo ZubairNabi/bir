@@ -7,6 +7,7 @@
 #include "sr_ip.h"
 #include "sr_neighbor_db.h"
 #include "sr_dijkstra.h"
+#include "sr_reroute_multipath.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -119,6 +120,11 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
              update_neighbor_vertex_t(router, router_entry);
              //calculate new routing table via Dijkstra
              calculate_routing_table(router);
+             //check if route/multipath is enabled
+             if(router->reroute_multipath_status == TRUE) {
+                //run multipath
+                reroute_multipath(router);
+             }
              //dijkstra2(router); 
              //free(lsu_packet);
              //free(ret);
@@ -178,6 +184,11 @@ void pwospf_lsu_type(struct ip* ip_header, byte* payload, uint16_t payload_len, 
                 } 
                   //run Djikstra's algo to calculate new routing table
                   calculate_routing_table(router);
+                  //check if route/multipath is enabled
+                  if(router->reroute_multipath_status == TRUE) {
+                     //run multipath
+                     reroute_multipath(router);
+                  }
                   //dijkstra2(router);
                 } else {
                      printf(" ** pwospf_lsu_type(..) error, content same as previous from this neighbor, only updating time stamp in DB\n");  

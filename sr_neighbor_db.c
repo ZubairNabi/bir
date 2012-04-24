@@ -4,6 +4,7 @@
 #include "cli/cli.h"
 #include "lwtcp/lwip/sys.h"
 #include "sr_dijkstra.h"
+#include "sr_reroute_multipath.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -331,6 +332,11 @@ void remove_timed_out_routers(void* input) {
         // if any routers have timed out then recalculate routing table
         if(count > 0) {
            calculate_routing_table(router);
+           //check if route/multipath is enabled
+           if(router->reroute_multipath_status == TRUE) {
+              //run multipath
+              reroute_multipath(router);
+           }
         }
       }
    }
