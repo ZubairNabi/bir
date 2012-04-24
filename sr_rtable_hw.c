@@ -196,7 +196,7 @@ void hw_rrtable_read_hw() {
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
    char *str;
    int i;
-   uint32_t destination, mask, hw_port, primary = 0, backup = 0;
+   uint32_t destination, mask, primary = 0, backup = 0;
    asprintf(&str, "Dst IP, Subnet Mask, Primary, Backup\n");
    cli_send_str(str);
    free(str);
@@ -215,9 +215,6 @@ void hw_rrtable_read_hw() {
         asprintf(&str, "%s, ", quick_ip_to_string(htonl(destination)));
         cli_send_str(str);
         free(str);
-        // split hw_port into primary and backup
-        primary = (uint16_t) (hw_port >> 16);
-        backup = (uint16_t) (hw_port & 0x0000FFFFuL);
         asprintf(&str, " %s, %d, %d\n", quick_ip_to_string(htonl(mask)), primary, backup);
         cli_send_str(str);
         free(str);
