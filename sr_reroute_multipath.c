@@ -10,6 +10,8 @@ void reroute_multipath(sr_router* router) {
    int i = 0;
    //to hold the confirmed list for each interface
    node* confirmed[4];
+   // list of multiple paths with costs
+   node* multipath_list = llist_new();
    //run dijkstra for each interface
    for(i = 0; i < router->num_interfaces; i++) {
       confirmed[i] = dijkstra(router, &router->interface[i]); 
@@ -36,10 +38,6 @@ void reroute_multipath(sr_router* router) {
          // traverse its subnets
          while(confirmed_subnets_first != NULL) {
             confirmed_subnets_entry = confirmed_subnets_first->data;
-            // make sure that this subnet doesn't already exist in the routing table
-            node* route_node = llist_find(router->hw_rtable->hw_rtable_list, predicate_ip_hw_route_t, (void*) &confirmed_subnets_entry->subnet); 
-            hw_route_t* route;
-            bool local_backup = FALSE;
             printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
             printf("rid: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
             //check if destination isn't self
@@ -59,45 +57,63 @@ void reroute_multipath(sr_router* router) {
                   printf("True: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
                   break;
                 }
-             }
+            }
              // if not local then get specific interface
-             if(local_ip == FALSE) {
+            if(local_ip == FALSE) {
                  printf("False: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
                  intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);
                  // try neighbor list
                  if(intf == NULL) {
                     intf = get_interface_from_id(router, d_vertex->router_entry.router_id);
                  }
-             }
-             printf("intf: %s\n" , intf->name);
+            }
+            printf("intf: %s\n" , intf->name);
+            // check whether we already have the entry in our multipath list
+            node* multipath_list_node = llist_find(multipath_list, predicate_multipath_list_data_t_ip, (void*) &confirmed_subnets_entry->subnet);
+            multipath_list_data_t* multipath_data;
+            if(multipath_list_node == NULL) {
+               multipath_data = (multipath_list_data_t*) malloc_or_die(sizeof(multipath_list_data_t));
+               multipath_data->primary_cost = d_list_entry->cost;
+               multipath_data->route.destination = confirmed_subnets_entry->subnet;
+               multipath_data->route.primary = get_hw_port_from_name(intf->name);
+               multipath_data->route.subnet_mask = confirmed_subnets_entry->mask;
+               multipath_data->route.backup = 0; 
+               multipath_data->primary_flag = 1;
+               multipath_list = llist_insert_beginning(multipath_list, (void*) multipath_data);
+            } else {
+               multipath_data = multipath_list_node->data;
+               //check if primary exists
+               if(multipath_data->primary_flag == 1) {
+                  //check if current cost is the same as primary's
+                  if(d_list_entry->cost == multipath_data->primary_cost) {
+                     // add this entry too
+                     multipath_data->route.primary = multipath_data->route.primary + get_hw_port_from_name(intf->name);
+                  } else if (d_list_entry->cost > multipath_data->primary_cost) {
+                    // check if backup exists or cost less than present back
+                     if(multipath_data->route.backup == 0 || d_list_entry->cost < multipath_data->backup_cost) {
+                        //insert as backup
+                        multipath_data->route.backup = get_hw_port_from_name(intf->name);
+                        multipath_data->backup_cost = d_list_entry->cost;
+                     } else {
+                        //check if cost the same as backup
+                        if(d_list_entry->cost == multipath_data->backup_cost) {
+                           // add to backup
+                           multipath_data->route.backup = multipath_data->route.backup + get_hw_port_from_name(intf->name);
+                        }
+                     }
+                  } else if (d_list_entry->cost < multipath_data->primary_cost) {
+                     //replace as primary
+                      multipath_data->route.primary = get_hw_port_from_name(intf->name);
+                      multipath_data->primary_cost = d_list_entry->cost;
+                    }
 
-             if(route_node == NULL) {
-                route = (hw_route_t*) malloc_or_die(sizeof(hw_route_t));
-                route->destination = confirmed_subnets_entry->subnet;
-                route->primary = get_hw_port_from_name(intf->name);
-                route->subnet_mask = confirmed_subnets_entry->mask;
-                route->backup = 0; 
-                // add to routing table
-                hw_rrtable_route_add(router->hw_rtable, route->destination, route->subnet_mask, route->primary, route->backup);
-             } else {
-                //check that destination is not local
-                for( j = 0; j < router->num_interfaces; j++) {
-                   if((router->interface[j].ip & confirmed_subnets_entry->mask)  == confirmed_subnets_entry->subnet) {
-                     intf = &router->interface[j];
-                     local_backup = TRUE;
-                     printf("True backup: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
-                     break;
-                   }
-                }
-                if(local_backup == FALSE) {
-                   route = (hw_route_t*) route_node->data;
-                   route->backup = get_hw_port_from_name(intf->name);
-                }
-
-             }
+               }
+            }
             confirmed_subnets_first = confirmed_subnets_first->next;
          }/*end of while loop subnets*/
          confirmed_first = confirmed_first->next;
       }/*end of while loop*/
    }/*end of for loop*/ 
+   // display multipath list
+   llist_display_all(multipath_list, display_multipath_list_data_t);
 }

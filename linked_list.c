@@ -13,6 +13,7 @@
 #include "sr_dijkstra.h"
 #include "sr_integration.h"
 #include "sr_rtable_hw.h"
+#include "sr_reroute_multipath.h"
 
 node *llist_new() {
    node* head = NULL;
@@ -745,5 +746,25 @@ int predicate_ip_hw_route_t(void *listdata, void *ip) {
            return 1;
         else
            return 0;
+}
+
+int predicate_multipath_list_data_t_ip(void* listdata, void* ip) {
+  multipath_list_data_t *data = (multipath_list_data_t*) listdata;
+  addr_ip_t* ip_test = (addr_ip_t*) ip;
+    if( *ip_test == data->route.destination)
+       return 1;
+    else
+       return 0;
+}
+
+int display_multipath_list_data_t(void* list_data) {
+   multipath_list_data_t* data = (multipath_list_data_t*) list_data;
+   printf("subnet: %s ", quick_ip_to_string(data->route.destination));
+   printf("mask: %s ", quick_ip_to_string(data->route.subnet_mask));
+   printf("primary: %d ", data->route.primary);
+   printf("backup: %d ", data->route.backup);
+   printf("primary cost: %d ", data->primary_cost);
+   printf("backup cost: %d\n", data->backup_cost); 
+   return 0;
 }
 
