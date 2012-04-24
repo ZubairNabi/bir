@@ -3,6 +3,7 @@
 #include "cli/cli.h"
 #include "sr_integration.h"
 #include "reg_defines.h"
+#include "sr_reroute_multipath.h"
 
 #define DEFAULT_IFACE   "nf2c0"
 
@@ -81,6 +82,11 @@ void hw_init(sr_router* router) {
 void toggle_reroute_multipath_status(sr_router* router, bool status) {
    router->reroute_multipath_status = status;
    write_hw_reroute_multipath(router, status);
+   //check if route/multipath is enabled
+   if(router->reroute_multipath_status == TRUE) {
+      //run multipath
+      reroute_multipath(router);
+   }
 }
 
 
