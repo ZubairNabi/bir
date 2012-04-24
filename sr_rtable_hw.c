@@ -142,7 +142,7 @@ void hw_rrtable_to_string() {
       asprintf(&str, "|%-15s|", quick_ip_to_string(entry->destination));
       cli_send_str(str);
       free(str);
-      asprintf(&str, "%-15s|%-11d|%-11d|\n", quick_ip_to_string(entry->subnet_mask), entry->primary, entry->backup);
+      asprintf(&str, "%-15s|%-11s|%-11s|\n", quick_ip_to_string(entry->subnet_mask), get_interface_from_multiple_hw_ports(entry->primary), get_interface_from_multiple_hw_ports(entry->backup));
       cli_send_str(str);
       free(str);
       head = head->next;
