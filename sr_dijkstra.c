@@ -69,36 +69,37 @@ node* dijkstra(sr_router* router, interface_t* select_intf) {
                if(ret_tentative == NULL && ret_confirmed == NULL) {
                   tentative = llist_insert_beginning(tentative, (void*) new_data);
                } else if (ret_tentative != NULL){
-               // if present in tentative
-               check_tentative = ret_tentative->data;   
-               //if cost of new entry is less than current in the list, replace current with new
-               if(new_data->cost < check_tentative->cost)
-                  tentative = llist_update_beginning_delete(tentative, predicate_dijkstra_list_data_t, (void*) new_data);
+                  // if present in tentative
+                  check_tentative = ret_tentative->data;   
+                  //if cost of new entry is less than current in the list, replace current with new
+                  if(new_data->cost < check_tentative->cost) {
+                     tentative = llist_update_beginning_delete(tentative, predicate_dijkstra_list_data_t, (void*) new_data);
+                  }
+               }
             }
          }
-      }
-      lsp = lsp->next;
-   } /*end of lsp while loop*/
-    // done with this router
-   //if tentative is empty then quit
-   //else pick the entry with lowest cost from tenative and add to confirmed
-   ret_lowest = tentative;
-   if(ret_lowest == NULL) {
-      break;
-   } else { 
-      // choose the first entry as the lowest cost one
-      check_lowest = (dijkstra_list_data_t*) ret_lowest->data;
-      min = check_lowest->cost;
-      lowest = check_lowest;
-      // now see if there's any entry lower than it
-      while (ret_lowest != NULL) {
-         check_lowest = (dijkstra_list_data_t*) ret_lowest->data; 
-         if(check_lowest->cost < min) {
-            min = check_lowest->cost;
-            lowest = check_lowest;
+         lsp = lsp->next;
+      } /*end of lsp while loop*/
+      // done with this router
+      //if tentative is empty then quit
+      //else pick the entry with lowest cost from tenative and add to confirmed
+      ret_lowest = tentative;
+      if(ret_lowest == NULL) {
+         break;
+      } else { 
+         // choose the first entry as the lowest cost one
+         check_lowest = (dijkstra_list_data_t*) ret_lowest->data;
+         min = check_lowest->cost;
+         lowest = check_lowest;
+         // now see if there's any entry lower than it
+         while (ret_lowest != NULL) {
+            check_lowest = (dijkstra_list_data_t*) ret_lowest->data; 
+            if(check_lowest->cost < min) {
+               min = check_lowest->cost;
+               lowest = check_lowest;
+            }
+            ret_lowest = ret_lowest->next;
          }
-         ret_lowest = ret_lowest->next;
-      }
       //remove it from the tentative list
       tentative = llist_remove(tentative, predicate_dijkstra_list_data_t, (void*) check_lowest);
       // add to confirmed list
