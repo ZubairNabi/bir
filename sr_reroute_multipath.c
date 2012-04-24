@@ -37,41 +37,52 @@ void reroute_multipath(sr_router* router) {
          while(confirmed_subnets_first != NULL) {
             confirmed_subnets_entry = confirmed_subnets_first->data;
             // make sure that this subnet doesn't already exist in the routing table
-            if(llist_exists(router->hw_rtable->hw_rtable_list, predicate_ip_hw_route_t, (void*) &confirmed_subnets_entry->subnet) == 0) {
-               printf("New interface found! ");
-               printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
-               printf("rid: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
-               //check if destination isn't self
-               uint32_t next_hop = 0;
-               if(d_vertex->router_entry.router_id != router->ls_info.router_id) {
-                  next_hop = d_vertex->router_entry.router_id;
-               }
-               printf("next hop: %s ", quick_ip_to_string(next_hop));
-               printf("mask: %s ", quick_ip_to_string(confirmed_subnets_entry->mask));
-               interface_t* intf = NULL;
-               local_ip = FALSE;
-               //check if destination is a local interface
-               for( j = 0; j < router->num_interfaces; j++) {
-                  if((router->interface[j].ip & confirmed_subnets_entry->mask)  == confirmed_subnets_entry->subnet) {
-                     intf = &router->interface[j];
-                     local_ip = TRUE;
-                     printf("True: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
-                     break;
-                  }
-               }
-               // if not local then get specific interface
-               if(local_ip == FALSE) {
-                  printf("False: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
-                  intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);
-                  // try neighbor list
-                  if(intf == NULL) {
-                     intf = get_interface_from_id(router, d_vertex->router_entry.router_id);
-                  }
-               }
-               printf("intf: %s\n" , intf->name);
-               // add to routing table
-               hw_rrtable_route_add(router->hw_rtable, confirmed_subnets_entry->subnet, next_hop, confirmed_subnets_entry->mask, get_hw_port_from_name(intf->name), 0);
-           } /*end of if exists statement*/
+            node* route_node = llist_find(router->hw_rtable->hw_rtable_list, predicate_ip_hw_route_t, (void*) &confirmed_subnets_entry->subnet); 
+            hw_route_t* route;
+            printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
+            printf("rid: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
+            //check if destination isn't self
+            uint32_t next_hop = 0;
+            if(d_vertex->router_entry.router_id != router->ls_info.router_id) {
+               next_hop = d_vertex->router_entry.router_id;
+            }
+            printf("next hop: %s ", quick_ip_to_string(next_hop));
+            printf("mask: %s ", quick_ip_to_string(confirmed_subnets_entry->mask));
+            interface_t* intf = NULL;
+            local_ip = FALSE;
+            //check if destination is a local interface
+            for( j = 0; j < router->num_interfaces; j++) {
+               if((router->interface[j].ip & confirmed_subnets_entry->mask)  == confirmed_subnets_entry->subnet) {
+                  intf = &router->interface[j];
+                  local_ip = TRUE;
+                  printf("True: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
+                  break;
+                }
+             }
+             // if not local then get specific interface
+             if(local_ip == FALSE) {
+                 printf("False: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
+                 intf = get_interface_ip(router, d_vertex->router_entry.router_id & confirmed_subnets_entry->mask);
+                 // try neighbor list
+                 if(intf == NULL) {
+                    intf = get_interface_from_id(router, d_vertex->router_entry.router_id);
+                 }
+             }
+             printf("intf: %s\n" , intf->name);
+
+             if(route_node == NULL) {
+                route = (hw_route_t*) malloc_or_die(sizeof(hw_route_t));
+                route->destination = confirmed_subnets_entry->subnet;
+                route->next_hop = next_hop;
+                route->primary = get_hw_port_from_name(intf->name);
+                route->subnet_mask = confirmed_subnets_entry->mask;
+                route->backup = 0; 
+             } else {
+                route = (hw_route_t*) route_node->data;
+                route->backup = get_hw_port_from_name(intf->name);
+             }
+             // add to routing table
+            hw_rrtable_route_add(router->hw_rtable, route->destination, route->next_hop, route->subnet_mask, route->primary, route->backup);
             confirmed_subnets_first = confirmed_subnets_first->next;
          }/*end of while loop subnets*/
          confirmed_first = confirmed_first->next;
