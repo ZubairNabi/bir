@@ -116,4 +116,12 @@ void reroute_multipath(sr_router* router) {
    }/*end of for loop*/ 
    // display multipath list
    llist_display_all(multipath_list, display_multipath_list_data_t);
+   // now add entries to routing table
+   node* multipath_list_head = multipath_list;
+   multipath_list_data_t* multipath_data_add;
+   while(multipath_list_head != NULL) {
+      multipath_data_add = multipath_list_head->data; 
+      hw_rrtable_route_add(router->hw_rtable, multipath_data_add->route.destination, multipath_data_add->route.subnet_mask, multipath_data_add->route.primary, multipath_data_add->route.backup);
+      multipath_list_head = multipath_list_head->next;
+   }
 }
