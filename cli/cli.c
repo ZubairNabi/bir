@@ -17,6 +17,7 @@
 #include "../sr_rtable.h"
 #include "../sr_neighbor_db.h"
 #include "../sr_router.h"
+#include "../sr_rtable_hw.h"
 
 /* temporary */
 #include "cli_stubs.h"
@@ -240,6 +241,12 @@ void cli_show_ip_intf() {
 void cli_show_ip_route() {
     cli_send_str( "\nShowing routing table:\n" );
     rrtable_to_string();
+    struct sr_instance* sr_inst = get_sr();
+    struct sr_router* subsystem = (struct sr_router*)sr_get_subsystem(sr_inst);
+    if(subsystem->reroute_multipath_status == TRUE) {
+        cli_send_str( "\nShowing multipath routing table:\n" );
+        hw_rrtable_to_string();
+    }
 }
 
 void cli_show_opt() {
