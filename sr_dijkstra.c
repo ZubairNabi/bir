@@ -41,18 +41,8 @@ node* dijkstra(sr_router* router, interface_t* select_intf) {
       while(lsp!= NULL) {
          //printf("loop\n");
          subnet_entry = lsp->data; 
-         // check that focus is not on a specific interface
-         if(select_intf != NULL) {
-            printf(" ** dijkstra(..) running for: %s\n", select_intf->name);
-            node* select_intf_neighbors = select_intf->neighbor_list;
-            pthread_mutex_lock(&select_intf->neighbor_lock); 
-            select_intf_flag = llist_exists(select_intf_neighbors, predicate_ip_neighbor_t, (void*) &next->destination->router_entry.router_id);
-            pthread_mutex_unlock(&select_intf->neighbor_lock);
-         } else { //true by default
-            select_intf_flag = TRUE;
-         }
          // find neighbor
-         if(subnet_entry->router_id != 0 && select_intf_flag == TRUE) {
+         if(subnet_entry->router_id != 0) {
             printf("router_id: %s\n", quick_ip_to_string(subnet_entry->router_id));
             // for each neighbor create new entry
             dijkstra_list_data_t* new_data = (dijkstra_list_data_t*) malloc_or_die(sizeof(dijkstra_list_data_t));
@@ -61,8 +51,18 @@ node* dijkstra(sr_router* router, interface_t* select_intf) {
             new_data->next_hop = next->destination->router_entry.router_id;
             // destination would be neighbors data
             new_data->destination = find_vertex(router, subnet_entry->router_id); 
+            // check that focus is not on a specific interface
+            if(select_intf != NULL && new_data->destination != NULL) {
+               printf(" ** dijkstra(..) running for: %s and checking router: %s\n", select_intf->name, quick_ip_to_string(new_data->destination->router_entry.router_id));
+               node* select_intf_neighbors = select_intf->neighbor_list;
+               pthread_mutex_lock(&select_intf->neighbor_lock);
+               select_intf_flag = llist_exists(select_intf_neighbors, predicate_ip_neighbor_t, (void*) &new_data->destination->router_entry.router_id);
+               pthread_mutex_unlock(&select_intf->neighbor_lock);
+            } else { //true by default
+               select_intf_flag = TRUE;
+            }
             // if neighbors data is found
-            if(new_data->destination != NULL) {
+            if(new_data->destination != NULL && select_intf_flag == TRUE) {
                ret_tentative = llist_find(tentative, predicate_dijkstra_list_data_t_vertex_t, (void*) new_data->destination);    
                ret_confirmed = llist_find(confirmed, predicate_dijkstra_list_data_t_vertex_t, (void*) new_data->destination);
                //if entry is neither in tenative nor confirmed, add to tentative
