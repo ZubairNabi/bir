@@ -78,10 +78,9 @@ void reroute_multipath(sr_router* router) {
                 route->primary = get_hw_port_from_name(intf->name);
                 route->subnet_mask = confirmed_subnets_entry->mask;
                 route->backup = 0; 
+                // add to routing table
+                hw_rrtable_route_add(router->hw_rtable, route->destination, route->next_hop, route->subnet_mask, route->primary, route->backup);
              } else {
-                
-                route = (hw_route_t*) route_node->data;
-                route->backup = get_hw_port_from_name(intf->name);
                 //check that destination is not local
                 for( j = 0; j < router->num_interfaces; j++) {
                    if((router->interface[j].ip & confirmed_subnets_entry->mask)  == confirmed_subnets_entry->subnet) {
@@ -91,12 +90,12 @@ void reroute_multipath(sr_router* router) {
                      break;
                    }
                 }
+                if(local_backup == FALSE) {
+                   route = (hw_route_t*) route_node->data;
+                   route->backup = get_hw_port_from_name(intf->name);
+                }
 
              }
-            //add to routing table
-            if(local_backup == FALSE) {
-               hw_rrtable_route_add(router->hw_rtable, route->destination, route->next_hop, route->subnet_mask, route->primary, route->backup);
-            }
             confirmed_subnets_first = confirmed_subnets_first->next;
          }/*end of while loop subnets*/
          confirmed_first = confirmed_first->next;
