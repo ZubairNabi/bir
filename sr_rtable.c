@@ -38,7 +38,6 @@ void rrtable_destroy(rtable_t *rtable){
     // delete lock
     pthread_mutex_destroy(&rtable->lock_rtable);
     // write to hw
-    rrtable_write_hw();
 }
 
 /**
@@ -98,8 +97,6 @@ void rrtable_route_add( rtable_t *rtable,
    rtable->rtable_list = llist_insert_sorted(rtable->rtable_list, predicate_ip_sort_route_t, (void*) route);
    // unblock table
    pthread_mutex_unlock(&rtable->lock_rtable);
-   // write to hw
-   rrtable_write_hw();
 }
 
 /**
@@ -124,8 +121,6 @@ bool rrtable_route_remove( rtable_t *rtable, addr_ip_t dest, addr_ip_t mask ) {
       return FALSE;
    else {
       rtable->rtable_list = ret;
-      // write to hw
-      rrtable_write_hw();
       return TRUE;
    }
 }
@@ -144,8 +139,6 @@ void rrtable_purge_all( rtable_t* rtable ) {
    rtable->rtable_list = llist_delete_no_count(rtable->rtable_list);
    // unlock table
    pthread_mutex_unlock(&rtable->lock_rtable);
-   // write to hw
-   rrtable_write_hw();
 }  
 
 /**
@@ -210,73 +203,6 @@ route_t* make_route_t(char type, addr_ip_t dst, interface_t intf, addr_ip_t next
    return route;
 } 
 
-void rrtable_write_hw() {
-#ifdef _CPUMODE_
-   printf(" ** rrtable_write_hw(..) called \n");
-   struct sr_instance* sr_inst = get_sr();
-   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
-   pthread_mutex_lock(&router->rtable->lock_rtable);
-   route_t* route = NULL;
-   node *head = router->rtable->rtable_list;
-   int i = 0;
-   while(head != NULL && i != ROUTER_OP_LUT_ROUTE_TABLE_DEPTH) {
-      route = (route_t*) head->data;
-      // Destination IP
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, ntohl(route->destination));
-      // Mask 
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, ntohl(route->subnet_mask));
-      //Next hop
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, ntohl(route->next_hop));
-      //Output port
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, route->intf.hw_port);
-      // row index
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR, i);
-      head = head->next;
-      i++;
-   }
-   pthread_mutex_unlock(&router->rtable->lock_rtable);
-#endif
-}
-
-void rrtable_read_hw() {
-#ifdef _CPUMODE_
-   printf(" ** rrtable_read_hw(..) called \n");
-   struct sr_instance* sr_inst = get_sr();
-   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
-   char *str;
-   int i;
-   uint32_t destination, next_hop, mask, hw_port;
-   interface_t intf;
-   asprintf(&str, "Dst IP, Next Hop IP, Subnet Mask, Interface\n");
-   cli_send_str(str);
-   free(str);
-   for(i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
-        // write index to read register
-        writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_RD_ADDR, i);
-        // read values from registers
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, &destination);
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP, &next_hop);
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, &mask);
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, &hw_port);
-        //check for blank entries
-        if(destination == 0)
-           break;
-        // get interface for hw port
-        intf = get_hw_intf(hw_port);
-        asprintf(&str, "%s, ", quick_ip_to_string(htonl(destination)));
-        cli_send_str(str);
-        free(str);
-        asprintf(&str, "%s ", quick_ip_to_string(htonl(next_hop)));
-        cli_send_str(str);
-        free(str);
-        asprintf(&str, " %s, %s\n", quick_ip_to_string(htonl(mask)), intf.name);
-        cli_send_str(str);
-        free(str);
-   }
-#endif   
-
-}
-
 void rrtable_purge_all_type( rtable_t* rtable, char type ) {
    printf(" ** rrtable_purge_all_type(..) called \n");
    // lock table
@@ -285,7 +211,5 @@ void rrtable_purge_all_type( rtable_t* rtable, char type ) {
    rtable->rtable_list = llist_remove_all_no_count(rtable->rtable_list, predicate_route_t_type, (void*) &type);
    // unlock table
    pthread_mutex_unlock(&rtable->lock_rtable);
-   // write to hw
-   rrtable_write_hw();
 }
 

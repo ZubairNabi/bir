@@ -174,13 +174,14 @@ void hw_rrtable_write_hw() {
    while(head != NULL && i != ROUTER_OP_LUT_ROUTE_TABLE_DEPTH) {
       route = (hw_route_t*) head->data;
       // Destination IP
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, ntohl(route->destination));
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP_REG, ntohl(route->destination));
       // Mask 
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, ntohl(route->subnet_mask));
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK_REG, ntohl(route->subnet_mask));
       //Output ports
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, route->primary + route->backup);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_PRIMARY_OUTPUT_PORT_REG, route->primary + route->backup);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_BACKUP_OUTPUT_PORT_REG, route->backup);
       // row index
-      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR, i);
+      writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR_REG, i);
       head = head->next;
       i++;
    }
@@ -195,18 +196,18 @@ void hw_rrtable_read_hw() {
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
    char *str;
    int i;
-   uint32_t destination, mask, hw_port;
-   uint16_t primary = 0, backup = 0;
+   uint32_t destination, mask, hw_port, primary = 0, backup = 0;
    asprintf(&str, "Dst IP, Subnet Mask, Primary, Backup\n");
    cli_send_str(str);
    free(str);
    for(i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
         // write index to read register
-        writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_RD_ADDR, i);
+        writeReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_RD_ADDR_REG, i);
         // read values from registers
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP, &destination);
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK, &mask);
-        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT, &hw_port);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP_REG, &destination);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK_REG, &mask);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_PRIMARY_OUTPUT_PORT_REG, &primary);
+        readReg(&router->hw_device, ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_BACKUP_OUTPUT_PORT_REG, &backup);
         //check for blank entries
         if(destination == 0)
            break;

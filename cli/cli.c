@@ -217,7 +217,7 @@ void cli_show_hw_intf() {
 
 void cli_show_hw_route() {
     cli_send_str( "\nHW Routing Table:\n" );
-    rrtable_read_hw();
+    hw_rrtable_read_hw();
 }
 #endif
 

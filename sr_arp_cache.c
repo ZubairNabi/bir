@@ -425,12 +425,12 @@ void arp_write_hw() {
          mac_lo |= ((unsigned int)cache_entry->mac.octet[4]) << 8;
 	 mac_lo |= ((unsigned int)cache_entry->mac.octet[5]);
          // write mac
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, mac_hi);
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, mac_lo);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI_REG, mac_hi);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO_REG, mac_lo);
          // write ip
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, ntohl(cache_entry->ip));
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP_REG, ntohl(cache_entry->ip));
          // write table index
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_WR_ADDR, i);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_WR_ADDR_REG, i);
          static_head = static_head->next;
          i++;
       }
@@ -449,12 +449,12 @@ void arp_write_hw() {
          mac_lo |= ((unsigned int)cache_entry->mac.octet[4]) << 8;
          mac_lo |= ((unsigned int)cache_entry->mac.octet[5]);
          // write mac
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, mac_hi);
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, mac_lo);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI_REG, mac_hi);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO_REG, mac_lo);
          // write ip
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, ntohl(cache_entry->ip));
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP_REG, ntohl(cache_entry->ip));
          // write table index
-         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_WR_ADDR, i);
+         writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_WR_ADDR_REG, i);
          dynamic_head = dynamic_head->next;
          i++;
       }
@@ -475,14 +475,14 @@ void arp_read_hw() {
        mac[0] = 0;
        mac[1] = 0;
        // write table index to read register   
-       writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_RD_ADDR, i);
+       writeReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_RD_ADDR_REG, i);
        // read mac hi, lo
-       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO, &mac[1]);
-       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI, &mac[2]);
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO_REG, &mac[1]);
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI_REG, &mac[2]);
        mac[0] = htonl(mac[0]);
        mac[1] = htonl(mac[1]);
        // read ip
-       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP, &ip);
+       readReg(&router->hw_device, ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP_REG, &ip);
        ip = htonl(ip);
        // check for blank entries
        if (ip == 0)

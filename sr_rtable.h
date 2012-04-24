@@ -82,8 +82,4 @@ unsigned int sizeof_rtable(void);
 
 route_t* make_route_t(char type, addr_ip_t dst, interface_t intf, addr_ip_t next_hop, addr_ip_t subnet_mask);
 
-void rrtable_write_hw();
-
-void rrtable_read_hw();
-
 void rrtable_purge_all_type( rtable_t* rtable, char type );

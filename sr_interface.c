@@ -223,43 +223,33 @@ void write_interface_hw(struct sr_router* subsystem) {
    mac_lo |= ((unsigned int)subsystem->interface[subsystem->num_interfaces].mac.octet[4]) << 8;
    mac_lo |= ((unsigned int)subsystem->interface[subsystem->num_interfaces].mac.octet[5]);
    //IMP: IP addresses are in network order
-   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, ntohl(subsystem->interface[subsystem->num_interfaces].ip));
-   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, subsystem->num_interfaces);
-   // write IPs to gateway table
-    writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_NEXT_HOP, ntohl(subsystem->interface[subsystem->num_interfaces].ip));
-   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_WR_ADDR, subsystem->num_interfaces);
+   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG, ntohl(subsystem->interface[subsystem->num_interfaces].ip));
+   writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR_REG, subsystem->num_interfaces);
    if(subsystem->num_interfaces == 0) {
        //IMP: MAC addresses are already in host order
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_HI_REG, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_0_LO_REG, mac_lo);
    } else if(subsystem->num_interfaces == 1) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_1_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_1_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_1_HI_REG, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_1_LO_REG, mac_lo);
    } else if(subsystem->num_interfaces == 2) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_2_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_2_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_2_HI_REG, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_2_LO_REG, mac_lo);
    } else if(subsystem->num_interfaces == 3) {
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_3_HI, mac_hi);
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_3_LO, mac_lo);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_3_HI_REG, mac_hi);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_MAC_3_LO_REG, mac_lo);
        // last interface
        //add allspfrouters ip
        int i = subsystem->num_interfaces + 1;
-       int j = subsystem->num_interfaces + 1;
        char* all_spf_routers =  ALL_SPF_ROUTERS_IP;
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, ntohl(make_ip_addr(all_spf_routers))); 
-       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, i);
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG, ntohl(make_ip_addr(all_spf_routers))); 
+       writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR_REG, i);
        // now add zeroes to the rest
        i++;
        while(i < ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH) {
-          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, 0);
-          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR, i);
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG, 0);
+          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_WR_ADDR_REG, i);
           i++;
-       }
-       // add zeroes to gateway table as well
-       while(j < ROUTER_OP_LUT_GATEWAY_TABLE_DEPTH) {
-          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_NEXT_HOP, 0);
-          writeReg(&subsystem->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_WR_ADDR, j);
-          j++;
        }
    }
    pthread_mutex_unlock(&subsystem->interface[subsystem->num_interfaces].hw_lock);
@@ -302,32 +292,32 @@ void read_interface_hw() {
    cli_send_str(str);
    free(str);
    // read hi, lo mac for eth0
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_0_HI, &mac[0]);
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_0_LO, &mac[1]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_0_HI_REG, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_0_LO_REG, &mac[1]);
    mac[0] = htonl(mac[0]);
    mac[1] = htonl(mac[1]);
    asprintf(&str, "%s, %s\n", "eth0",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
     // read hi, lo mac for eth1
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_1_HI, &mac[0]);
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_1_LO, &mac[1]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_1_HI_REG, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_1_LO_REG, &mac[1]);
    mac[0] = htonl(mac[0]);
    mac[1] = htonl(mac[1]);
    asprintf(&str, "%s, %s\n", "eth1",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
     // read hi, lo mac for eth2
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_2_HI, &mac[0]);
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_2_LO, &mac[1]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_2_HI_REG, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_2_LO_REG, &mac[1]);
    mac[0] = htonl(mac[0]);
    mac[1] = htonl(mac[1]);
    asprintf(&str, "%s, %s\n", "eth2",  quick_mac_to_string(((uint8_t*)mac) + 2));
    cli_send_str(str);
    free(str);
     // read hi, lo mac for eth3
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_3_HI, &mac[0]);
-   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_3_LO, &mac[1]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_3_HI_REG, &mac[0]);
+   readReg(&router->hw_device, ROUTER_OP_LUT_MAC_3_LO_REG, &mac[1]);
    mac[0] = htonl(mac[0]);
    mac[1] = htonl(mac[1]);
    asprintf(&str, "%s, %s\n", "eth3",  quick_mac_to_string(((uint8_t*)mac) + 2));
@@ -339,9 +329,9 @@ void read_interface_hw() {
    free(str);
    for (i = 0; i < ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH; i++) {
         // write index to register
-        writeReg(&router->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_RD_ADDR, i);
+        writeReg(&router->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_RD_ADDR_REG, i);
         // read value
-        readReg(&router->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP, &ip);
+        readReg(&router->hw_device, ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG, &ip);
         ip = htonl(ip);
         //check for blank entries
         if( ip == 0)
@@ -350,24 +340,6 @@ void read_interface_hw() {
         cli_send_str(str);
         free(str);
     } 
-    // read gateway table
-    asprintf(&str, "Gateway IP\n");
-    cli_send_str(str);
-    free(str);
-    for (i = 0; i < ROUTER_OP_LUT_GATEWAY_TABLE_DEPTH; i++) {
-        // write index to register
-        writeReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_RD_ADDR, i);
-        // read value
-        readReg(&router->hw_device, ROUTER_OP_LUT_GATEWAY_TABLE_ENTRY_NEXT_HOP, &ip);
-        ip = htonl(ip);
-        //check for blank entries
-        if( ip == 0)
-           break;
-        asprintf(&str, "%s\n",  quick_ip_to_string(ip));
-        cli_send_str(str);
-        free(str);
-    }
-
 #endif
 }
 
@@ -379,45 +351,45 @@ void read_info_hw() {
    char *str;
    uint32_t data;
    // read arp misses
-   readReg(&router->hw_device, ROUTER_OP_LUT_ARP_NUM_MISSES, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_ARP_NUM_MISSES_REG, &data);
    asprintf(&str, "arp misses: %lu\n", data);
    cli_send_str(str);
    free(str);
    // read lpm misses
-   readReg(&router->hw_device, ROUTER_OP_LUT_LPM_NUM_MISSES, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_LPM_NUM_MISSES_REG, &data);
    asprintf(&str, "lpm misses: %lu\n", data);
    cli_send_str(str);
    free(str);
    // read cpu pkts send
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_CPU_PKTS_SENT, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_CPU_PKTS_SENT_REG, &data);
    asprintf(&str, "cpu packets sent: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_OPTS_VER, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG, &data);
    asprintf(&str, "bad opts version: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_CHKSUMS, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_CHKSUMS_REG, &data);
    asprintf(&str, "bad checksums: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_TTLS, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_BAD_TTLS_REG, &data);
    asprintf(&str, "bad ttls: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_NON_IP_RCVD, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_NON_IP_RCVD_REG, &data);
    asprintf(&str, "non IP received: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_PKTS_FORWARDED, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_PKTS_FORWARDED_REG, &data);
    asprintf(&str, "packets forwarded: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_WRONG_DEST, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_WRONG_DEST_REG, &data);
    asprintf(&str, "wrong destination: %lu\n", data);
    cli_send_str(str);
    free(str);
-   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_FILTERED_PKTS, &data);
+   readReg(&router->hw_device, ROUTER_OP_LUT_NUM_FILTERED_PKTS_REG, &data);
    asprintf(&str, "filtered packets: %lu\n", data);
    cli_send_str(str);
    free(str);

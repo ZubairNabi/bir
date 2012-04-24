@@ -81,7 +81,6 @@ void hw_init(sr_router* router) {
 
 void toggle_reroute_multipath_status(sr_router* router, bool status) {
    router->reroute_multipath_status = status;
-   write_hw_reroute_multipath(router, status);
    //check if route/multipath is enabled
    if(router->reroute_multipath_status == TRUE) {
       //run multipath
@@ -126,14 +125,4 @@ void show_reroute_multipath() {
       cli_send_str(str);
       free(str);
    }
-}
-
-void write_hw_reroute_multipath(sr_router* router, bool status) {
-#ifdef _CPUMODE_
-   if(status == TRUE) {
-      writeReg(&router->hw_device, ROUTER_OP_LUT_REROUTE_MULTIPATH_ENABLE, 1);
-   } else {
-      writeReg(&router->hw_device, ROUTER_OP_LUT_REROUTE_MULTIPATH_ENABLE, 0);
-   }
-#endif
 }
