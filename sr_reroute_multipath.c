@@ -26,6 +26,7 @@ void reroute_multipath(sr_router* router) {
       neighbor_vertex_t* d_vertex;
       subnet_entry_t* confirmed_subnets_entry;
       bool local_ip = FALSE;
+      bool local_multi = FALSE;
       int j = 0;
       // display which interface
       printf(" ** reroute_multipath(..) calculating routing table based on: %s\n", router->interface[i].name);
@@ -81,34 +82,43 @@ void reroute_multipath(sr_router* router) {
                multipath_data->primary_flag = 1;
                multipath_list = llist_insert_beginning(multipath_list, (void*) multipath_data);
             } else {
-               multipath_data = multipath_list_node->data;
-               //check if primary exists
-               if(multipath_data->primary_flag == 1) {
-                  //check if current cost is the same as primary's
-                  if(d_list_entry->cost == multipath_data->primary_cost) {
-                     // add this entry too
-                     multipath_data->route.primary = multipath_data->route.primary + get_hw_port_from_name(intf->name);
-                  } else if (d_list_entry->cost > multipath_data->primary_cost) {
-                    // check if backup exists or cost less than present back
-                     if(multipath_data->route.backup == 0 || d_list_entry->cost < multipath_data->backup_cost) {
-                        //insert as backup
-                        multipath_data->route.backup = get_hw_port_from_name(intf->name);
-                        multipath_data->backup_cost = d_list_entry->cost;
-                     } else {
-                        //check if cost the same as backup
-                        if(d_list_entry->cost == multipath_data->backup_cost) {
-                           // add to backup
-                           multipath_data->route.backup = multipath_data->route.backup + get_hw_port_from_name(intf->name);
-                        }
-                     }
-                  } else if (d_list_entry->cost < multipath_data->primary_cost) {
-                     //replace as primary
-                      multipath_data->route.primary = get_hw_port_from_name(intf->name);
-                      multipath_data->primary_cost = d_list_entry->cost;
-                    }
-
+               // ensure that local entry isn't added multiple times
+               local_multi = FALSE;
+               for( j = 0; j < router->num_interfaces; j++) {
+                  if((router->interface[j].ip & multipath_data->route.subnet_mask)  == multipath_data->route.destination) {
+                     local_multi = TRUE;
+                     break;
+                  }
                }
-            }
+               if(local_multi != TRUE) {
+                  multipath_data = multipath_list_node->data;
+                  //check if primary exists
+                  if(multipath_data->primary_flag == 1) {
+                     //check if current cost is the same as primary's
+                     if(d_list_entry->cost == multipath_data->primary_cost) {
+                        // add this entry too
+                        multipath_data->route.primary = multipath_data->route.primary + get_hw_port_from_name(intf->name);
+                     } else if (d_list_entry->cost > multipath_data->primary_cost) {
+                        // check if backup exists or cost less than present back
+                        if(multipath_data->route.backup == 0 || d_list_entry->cost < multipath_data->backup_cost) {
+                           //insert as backup
+                           multipath_data->route.backup = get_hw_port_from_name(intf->name);
+                           multipath_data->backup_cost = d_list_entry->cost;
+                        } else {
+                           //check if cost the same as backup
+                           if(d_list_entry->cost == multipath_data->backup_cost) {
+                              // add to backup
+                              multipath_data->route.backup = multipath_data->route.backup + get_hw_port_from_name(intf->name);
+                           }
+                        }
+                     } else if (d_list_entry->cost < multipath_data->primary_cost) {
+                        //replace as primary
+                         multipath_data->route.primary = get_hw_port_from_name(intf->name);
+                         multipath_data->primary_cost = d_list_entry->cost;
+                     }
+                  }
+               }
+            } /*end of else*/
             confirmed_subnets_first = confirmed_subnets_first->next;
          }/*end of while loop subnets*/
          confirmed_first = confirmed_first->next;
