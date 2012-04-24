@@ -1,5 +1,7 @@
 #include "sr_neighbor.h"
 #include "cli/helper.h"
+#include "reg_defines.h"
+#include "sr_integration.h"
 
 #include <time.h>
 #include <sys/time.h>
@@ -21,6 +23,24 @@ void add_neighbor(interface_t* intf, uint32_t id, addr_ip_t ip, uint16_t helloin
    pthread_mutex_lock(&intf->neighbor_lock);
    intf->neighbor_list = llist_insert_beginning( intf->neighbor_list, (void*) neighbor);
    pthread_mutex_unlock(&intf->neighbor_lock);
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
+
+   // write next hop to hw reg
+   switch(get_num_from_name(intf->name)) {
+      case 0:
+          writeReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_0_REG, ntohl(ip)); 
+          break;
+      case 1:
+          writeReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_1_REG, ntohl(ip));
+          break;
+      case 2:
+          writeReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_2_REG, ntohl(ip));
+          break;
+      case 3:
+          writeReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_3_REG, ntohl(ip));
+          break;
+   }
 }
 
 neighbor_t* make_neighbor_lsu(uint32_t id, addr_ip_t ip, uint16_t helloint, addr_ip_t mask, pwospf_lsu_packet_t lsu_packet, byte* adverts) {

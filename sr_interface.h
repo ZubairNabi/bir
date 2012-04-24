@@ -78,4 +78,6 @@ void read_info_hw();
 
 uint16_t get_hw_port_from_name(char*);
 
+uint16_t get_num_from_name(char* intf_name);
+
 #endif /* SR_INTERFACE_H */
