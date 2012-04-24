@@ -39,6 +39,7 @@ void reroute_multipath(sr_router* router) {
             // make sure that this subnet doesn't already exist in the routing table
             node* route_node = llist_find(router->hw_rtable->hw_rtable_list, predicate_ip_hw_route_t, (void*) &confirmed_subnets_entry->subnet); 
             hw_route_t* route;
+            bool local_backup = FALSE;
             printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
             printf("rid: %s ", quick_ip_to_string(d_vertex->router_entry.router_id));
             //check if destination isn't self
@@ -78,11 +79,24 @@ void reroute_multipath(sr_router* router) {
                 route->subnet_mask = confirmed_subnets_entry->mask;
                 route->backup = 0; 
              } else {
+                
                 route = (hw_route_t*) route_node->data;
                 route->backup = get_hw_port_from_name(intf->name);
+                //check that destination is not local
+                for( j = 0; j < router->num_interfaces; j++) {
+                   if((router->interface[j].ip & confirmed_subnets_entry->mask)  == confirmed_subnets_entry->subnet) {
+                     intf = &router->interface[j];
+                     local_backup = TRUE;
+                     printf("True backup: %s \n", quick_ip_to_string(confirmed_subnets_entry->subnet));
+                     break;
+                   }
+                }
+
              }
-             // add to routing table
-            hw_rrtable_route_add(router->hw_rtable, route->destination, route->next_hop, route->subnet_mask, route->primary, route->backup);
+            //add to routing table
+            if(local_backup == FALSE) {
+               hw_rrtable_route_add(router->hw_rtable, route->destination, route->next_hop, route->subnet_mask, route->primary, route->backup);
+            }
             confirmed_subnets_first = confirmed_subnets_first->next;
          }/*end of while loop subnets*/
          confirmed_first = confirmed_first->next;
