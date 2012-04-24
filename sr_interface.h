@@ -80,4 +80,6 @@ uint16_t get_hw_port_from_name(char*);
 
 uint16_t get_num_from_name(char* intf_name);
 
+char* get_interface_from_multiple_hw_ports(uint16_t ports);
+
 #endif /* SR_INTERFACE_H */

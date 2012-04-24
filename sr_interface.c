@@ -415,3 +415,41 @@ uint16_t get_num_from_name(char* intf_name) {
       return 2;
    return 3;
 }
+
+char* get_interface_from_multiple_hw_ports(uint16_t ports) {
+   switch(ports) {
+      case 1:
+         return "eth0";
+      case 4: 
+         return "eth1";
+      case 5:
+         return "eth0,1";
+      case 16:
+         return "eth2";
+      case 17:
+         return "eth0,2";
+      case 20:
+         return "eth1,2";
+      case 21:
+         return "eth0,1,2";
+      case 64:
+         return "eth3";
+      case 65:
+         return "eth0,3";
+      case 68:
+         return "eth1,3";
+      case 69:
+         return "eth0,1,3";
+      case 80:
+         return "eth2,3";
+      case 81:
+         return "eth0,2,3";
+      case 84:
+         return "eth1,2,3";
+      case 85:
+         return "eth0,1,2,3";
+      default:
+         return "unknown";
+   }
+}
+
