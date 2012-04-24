@@ -74,12 +74,11 @@ void reroute_multipath(sr_router* router) {
              if(route_node == NULL) {
                 route = (hw_route_t*) malloc_or_die(sizeof(hw_route_t));
                 route->destination = confirmed_subnets_entry->subnet;
-                route->next_hop = next_hop;
                 route->primary = get_hw_port_from_name(intf->name);
                 route->subnet_mask = confirmed_subnets_entry->mask;
                 route->backup = 0; 
                 // add to routing table
-                hw_rrtable_route_add(router->hw_rtable, route->destination, route->next_hop, route->subnet_mask, route->primary, route->backup);
+                hw_rrtable_route_add(router->hw_rtable, route->destination, route->subnet_mask, route->primary, route->backup);
              } else {
                 //check that destination is not local
                 for( j = 0; j < router->num_interfaces; j++) {
