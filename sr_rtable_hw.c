@@ -8,6 +8,7 @@
 #include "cli/cli.h"
 #include "sr_integration.h"
 #include "reg_defines.h"
+#include "sr_neighbor.h"
 
 /**
  * Initialize the routing table
@@ -120,7 +121,38 @@ void hw_rrtable_purge_all( hw_rtable_t* hw_rtable ) {
  */
 
 void hw_rrtable_to_string() {
+   // get instance of router 
+   struct sr_instance* sr_inst = get_sr();
+   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
    char *str;
+   // first display the next hop table
+   asprintf(&str, "-----------------------\n");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "|%-5s|%-15s|\n", "Index", "Next Hop IP");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "-----------------------\n");
+   cli_send_str(str);
+   free(str);
+   // get next hop addresses from each interface
+   int i = 0;
+   for(i = 0; i < router->num_interfaces; i++) {
+      pthread_mutex_lock(&router->interface[i].neighbor_lock);
+      node* neighbor_node = router->interface[i].neighbor_list;    
+      // check if interface has a neighbor or not
+      if(neighbor_node != NULL) {
+         neighbor_t* neighbor = neighbor_node->data;
+         asprintf(&str, "|%-5s|%-15s|\n", router->interface[i].name, quick_ip_to_string(neighbor->ip));
+         cli_send_str(str);
+         free(str);
+      }
+      pthread_mutex_unlock(&router->interface[i].neighbor_lock);
+   } 
+   asprintf(&str, "-----------------------\n");
+   cli_send_str(str);
+   free(str);
+   // now multipath routing table
    asprintf(&str, "---------------------------------------------------------\n");
    cli_send_str(str);
    free(str);
@@ -132,9 +164,6 @@ void hw_rrtable_to_string() {
    free(str);
    node* head;
    hw_route_t* entry;
-   // get instance of router 
-   struct sr_instance* sr_inst = get_sr();
-   struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
    pthread_mutex_lock(&router->hw_rtable->hw_lock_rtable);
    head = router->hw_rtable->hw_rtable_list;
    while(head != NULL) {
