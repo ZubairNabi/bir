@@ -68,11 +68,14 @@ void reroute_multipath(sr_router* router) {
                     intf = get_interface_from_id(router, d_vertex->router_entry.router_id);
                  }
             }
+             display_dijkstra_list_data_t(d_list_entry);
+              printf("subnet: %s ", quick_ip_to_string(confirmed_subnets_entry->subnet));
             printf("intf: %s\n" , intf->name);
             // check whether we already have the entry in our multipath list
             node* multipath_list_node = llist_find(multipath_list, predicate_multipath_list_data_t_ip, (void*) &confirmed_subnets_entry->subnet);
             multipath_list_data_t* multipath_data;
             if(multipath_list_node == NULL) {
+               printf("adding new primary\n");
                multipath_data = (multipath_list_data_t*) malloc_or_die(sizeof(multipath_list_data_t));
                multipath_data->primary_cost = d_list_entry->cost;
                multipath_data->route.destination = confirmed_subnets_entry->subnet;
@@ -81,26 +84,36 @@ void reroute_multipath(sr_router* router) {
                multipath_data->route.backup = 0; 
                multipath_data->primary_flag = 1;
                multipath_list = llist_insert_beginning(multipath_list, (void*) multipath_data);
+               display_multipath_list_data_t((void*) multipath_data);
             } else {
                // ensure that local entry isn't added multiple times
                local_multi = FALSE;
                for( j = 0; j < router->num_interfaces; j++) {
-                  if((router->interface[j].ip & multipath_data->route.subnet_mask)  == multipath_data->route.destination) {
+                  if((router->interface[j].ip & confirmed_subnets_entry->mask) == confirmed_subnets_entry->subnet) {
                      local_multi = TRUE;
+                     printf("entry is a local interface\n");
+                     printf("interface ip: %s\n", quick_ip_to_string(router->interface[j].ip));
+                     printf("interface ip with mask: %s\n", quick_ip_to_string(router->interface[j].ip & confirmed_subnets_entry->mask));
+                     printf("destination ip: %s\n", quick_ip_to_string(confirmed_subnets_entry->subnet));
                      break;
                   }
                }
                if(local_multi != TRUE) {
                   multipath_data = multipath_list_node->data;
+                  display_multipath_list_data_t((void*) multipath_data);
                   //check if primary exists
                   if(multipath_data->primary_flag == 1) {
+                     printf("primary exists\n");
                      //check if current cost is the same as primary's
                      if(d_list_entry->cost == multipath_data->primary_cost) {
+                        printf("cost same as primary\n");
                         // add this entry too
                         multipath_data->route.primary = multipath_data->route.primary + get_hw_port_from_name(intf->name);
                      } else if (d_list_entry->cost > multipath_data->primary_cost) {
+                         printf("cost greater than primary\n");
                         // check if backup exists or cost less than present back
                         if(multipath_data->route.backup == 0 || d_list_entry->cost < multipath_data->backup_cost) {
+                           printf("no backup yet or cost less than current backup\n");
                            //insert as backup
                            multipath_data->route.backup = get_hw_port_from_name(intf->name);
                            multipath_data->backup_cost = d_list_entry->cost;
@@ -109,9 +122,11 @@ void reroute_multipath(sr_router* router) {
                            if(d_list_entry->cost == multipath_data->backup_cost) {
                               // add to backup
                               multipath_data->route.backup = multipath_data->route.backup + get_hw_port_from_name(intf->name);
+                              printf("cost same as backup\n");
                            }
                         }
                      } else if (d_list_entry->cost < multipath_data->primary_cost) {
+                        printf("cost less than current primary\n");
                         //replace as primary
                          uint16_t temp_route = multipath_data->route.primary;
                          uint16_t temp_cost = d_list_entry->cost;
@@ -119,11 +134,13 @@ void reroute_multipath(sr_router* router) {
                          multipath_data->primary_cost = d_list_entry->cost;
                          // now can the old primary replace the backup?
                          if(temp_cost < multipath_data->backup_cost) {
+                            printf("old primary cost less than current backup\n");
                             multipath_data->route.backup = temp_route;
                             multipath_data->backup_cost = temp_cost;
                          }
                      }
                   }
+                  display_multipath_list_data_t((void*) multipath_data);
                }
             } /*end of else*/
             confirmed_subnets_first = confirmed_subnets_first->next;
