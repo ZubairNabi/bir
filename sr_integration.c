@@ -104,13 +104,13 @@ void sr_integ_hw_setup(struct sr_instance* sr)
     uint32_t area_id = PWOSPF_AREA_ID;
     uint16_t lsuint = PWOSPF_LSU_INTERVAL;
     set_ls_info_id(subsystem, area_id, lsuint);
-    // initialize pwospf
-    pwospf_init(subsystem);
-    // initialize neighbor db
+     // initialize neighbor db
     neighbor_db_init(subsystem);
     // display initial state of neighbor db
     printf(" ** sr_integ_hw(..) initial state of neighbor db\n");
     display_neighbor_vertices(subsystem);
+    // initialize pwospf
+    pwospf_init(subsystem);
     // get hardware fds for each hw interface
     #ifdef _CPUMODE_
     sr_cpu_init_interface_socket(subsystem);

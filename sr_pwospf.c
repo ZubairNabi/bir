@@ -104,9 +104,6 @@ void send_hello_packet(void* intf_input) {
    timeout->tv_sec = (time_t) intf->helloint;
    timeout->tv_nsec = 0;
    while(1) {
-      // sleep for interval
-      nanosleep(timeout, timeout_rem);
-      printf(" ** send hello packet thread awoken for interface: %s\n", intf->name);
       //broadcast packets
       //make hello packet
       pwospf_hello_packet_t* hello_packet = (pwospf_hello_packet_t*) malloc_or_die(sizeof(pwospf_hello_packet_t));
@@ -159,6 +156,9 @@ void send_hello_packet(void* intf_input) {
                           ETHERTYPE_IP,
                           ip_packet,
                           packet_len );
+      // sleep for interval
+      nanosleep(timeout, timeout_rem);
+      printf(" ** send hello packet thread awoken for interface: %s\n", intf->name);
    }
 }
 
@@ -221,11 +221,11 @@ void send_lsu_packet(void* intf_input) {
    sr_router* router = (sr_router*) intf_input;
    while(1) {
       // sleep for interval
-      nanosleep(timeout, timeout_rem);
-      printf(" ** send lsu packet thread awoken\n");
       if(router->ospf_status == TRUE)
          pwospf_send_lsu();
       else
          printf(" ** send lsu packet thread: ospf disabled\n");
+      nanosleep(timeout, timeout_rem);
+      printf(" ** send lsu packet thread awoken\n");
    }
 }
