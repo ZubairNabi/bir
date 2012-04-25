@@ -223,10 +223,71 @@ void hw_rrtable_read_hw() {
    printf(" ** hw_rrtable_read_hw(..) called \n");
    struct sr_instance* sr_inst = get_sr();
    struct sr_router* router = (struct sr_router*)sr_get_subsystem(sr_inst);
-   char *str;
-   int i;
+   char* str;
+   //first read the hop table
+   asprintf(&str, "-----------------------\n");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "|%-5s|%-15s|\n", "Index", "Next Hop IP");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "-----------------------\n");
+   cli_send_str(str);
+   free(str);
+   int i = 0;
+   uint32_t hop;
+   for(i = 0; i < router->num_interfaces; i++) {
+      switch(i) {
+         case 0:
+             readReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_0_REG, &hop);
+             hop = htonl(hop);
+             if(hop != 0) {
+                asprintf(&str, "|%-5s|%-15s|\n", "eth0", quick_ip_to_string(hop));
+                cli_send_str(str);
+         	free(str);
+             }
+             break;
+         case 1:
+             readReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_1_REG, &hop);
+             hop = htonl(hop);
+             if(hop != 0) {
+                asprintf(&str, "|%-5s|%-15s|\n", "eth1", quick_ip_to_string(hop));
+                cli_send_str(str);
+                free(str);
+             }
+             break;
+         case 2:
+             readReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_2_REG, &hop);
+             hop = htonl(hop);
+             if(hop != 0) {
+                asprintf(&str, "|%-5s|%-15s|\n", "eth2", quick_ip_to_string(hop));
+                cli_send_str(str);
+                free(str);
+             }
+             break;
+         case 3:
+             readReg(&router->hw_device, ROUTER_OP_LUT_NEXT_HOP_IP_3_REG, &hop);
+             hop = htonl(hop);
+             if(hop != 0) {
+                asprintf(&str, "|%-5s|%-15s|\n", "eth3", quick_ip_to_string(hop));
+                cli_send_str(str);
+                free(str);
+             }
+             break;
+      }
+   }
+   asprintf(&str, "-----------------------\n");
+   cli_send_str(str);
+   free(str);
    uint32_t destination, mask, primary = 0, backup = 0;
-   asprintf(&str, "Dst IP, Subnet Mask, Primary, Backup\n");
+   // now multipath routing table
+   asprintf(&str, "---------------------------------------------------------\n");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "|%-15s|%-15s|%-11s|%-11s|\n", "Destination", "Mask", "Primary", "Backup");
+   cli_send_str(str);
+   free(str);
+   asprintf(&str, "---------------------------------------------------------\n");
    cli_send_str(str);
    free(str);
    for(i = 0; i < ROUTER_OP_LUT_ROUTE_TABLE_DEPTH; i++) {
@@ -240,14 +301,16 @@ void hw_rrtable_read_hw() {
         //check for blank entries
         if(destination == 0)
            break;
-        // get interface for hw port
-        asprintf(&str, "%s, ", quick_ip_to_string(htonl(destination)));
+        asprintf(&str, "|%-15s|", quick_ip_to_string(htonl(destination)));
         cli_send_str(str);
         free(str);
-        asprintf(&str, " %s, %d, %d\n", quick_ip_to_string(htonl(mask)), primary, backup);
+        asprintf(&str, "%-15s|%-11s|%-11s|\n", quick_ip_to_string(htonl(mask)), get_interface_from_multiple_hw_ports(primary), get_interface_from_multiple_hw_ports(backup));
         cli_send_str(str);
         free(str);
    }
+   asprintf(&str, "---------------------------------------------------------\n");
+   cli_send_str(str);
+   free(str);
 #endif   
 
 }
