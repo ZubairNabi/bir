@@ -113,8 +113,15 @@ void reroute_multipath(sr_router* router) {
                         }
                      } else if (d_list_entry->cost < multipath_data->primary_cost) {
                         //replace as primary
+                         uint16_t temp_route = multipath_data->route.primary;
+                         uint16_t temp_cost = d_list_entry->cost;
                          multipath_data->route.primary = get_hw_port_from_name(intf->name);
                          multipath_data->primary_cost = d_list_entry->cost;
+                         // now can the old primary replace the backup?
+                         if(temp_cost < multipath_data->backup_cost) {
+                            multipath_data->route.backup = temp_route;
+                            multipath_data->backup_cost = temp_cost;
+                         }
                      }
                   }
                }
